@@ -1,0 +1,30 @@
+{{define "content"}}
+    <p class="font-bold mb-2 text-5">搜索</p>
+
+    <div class="flex flex-row gap-2 mt-2 text-sm">
+        <div class="font-bold">类型</div>
+        <div class="flex flex-row gap-2 items-center">
+            <input type="radio" id="link" name="type" checked />
+            <label for="link">链接</label>
+            <input type="radio" id="ask" name="type" />
+            <label for="ask">提问</label>
+        </div>
+    </div>
+
+    <div class="flex flex-row gap-2 mt-2 text-sm">
+        <div class="font-bold">排序</div>
+        <div class="flex flex-row gap-2 items-center">
+            <input type="radio" id="created" name="orderBy" checked />
+            <label for="created">创建时间</label>
+            <input type="radio" id="points" name="orderBy" />
+            <label for="points">得分</label>
+        </div>
+    </div>
+
+    <div class="flex flex-col gap-2 mt-2 items-start">
+        <input type="text" class="input" />
+        <button class="btn  px-4">搜索</button>
+    </div>
+
+
+{{end}}

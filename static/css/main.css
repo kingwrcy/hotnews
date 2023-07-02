@@ -1,0 +1,30 @@
+html {
+    height: 100%;
+    font-size: 16px;
+}
+
+html.dark {
+    background-color: #000 !important;
+}
+
+*{
+    margin:0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+[un-cloak] {
+    display: none;
+}
+
+a{
+    text-decoration: none;
+    color:inherit;
+}
+
+.header .selected > a{
+    text-decoration: underline;
+    text-decoration-color: #5468ff;
+    text-decoration-thickness: 2px;
+    text-underline-offset: 0.4rem;
+}

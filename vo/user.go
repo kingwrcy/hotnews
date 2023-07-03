@@ -1,12 +1,20 @@
 package vo
 
 type LoginRequest struct {
-	Username string `json:"username,omitempty"`
-	Password string `json:"password,omitempty"`
+	Username string `form:"username,omitempty"`
+	Password string `form:"password,omitempty"`
 }
-type LoginResponse struct {
-	Username string `json:"username,omitempty"`
-	Token    string `json:"token,omitempty"`
-	Role     string `json:"role,omitempty"`
-	UID      string `json:"uid,omitempty"`
+type RegisterRequest struct {
+	Username       string `form:"username,omitempty"`
+	Password       string `form:"password,omitempty"`
+	RepeatPassword string `form:"repeatPassword,omitempty"`
+	Email          string `form:"email,omitempty"`
+	Bio            string `form:"bio,omitempty"`
+}
+
+type Userinfo struct {
+	Username string
+	Role     string
+	ID       uint
+	Email    string
 }

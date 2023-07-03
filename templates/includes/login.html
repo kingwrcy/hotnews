@@ -1,31 +1,38 @@
+{{ define "title"}}<title>登录</title>{{ end }}
+
+
 {{define "content"}}
 <div class="mt-4">
-    <p class="font-bold text-5 mb-4">登录</p>
-    <div class="flex flex-col gap-2">
-        <div class="flex flex-row items-center">
-            <div class="mr-2 text-sm">用户</div>
-            <div>
-                <input
-                        type="text"
-                        class="input"
-                        placeholder="登录名或者电子邮箱"
-                />
+    <form action="/u/login" method="post">
+        <p class="font-bold text-5 mb-4">登录</p>
+        <div class="flex flex-col gap-2">
+            <div class="flex flex-row items-center">
+                <div class="mr-2 text-sm">用户</div>
+                <div>
+                    <input name="username"
+                           type="text"
+                           class="input"
+                           placeholder="登录名或者电子邮箱"
+                           value="admin"
+                    />
+                </div>
             </div>
-        </div>
-        <div class="flex flex-row items-center">
-            <div class="mr-2 text-sm">密码</div>
-            <div>
-                <input type="password" class="input" />
+            <div class="flex flex-row items-center">
+                <div class="mr-2 text-sm">密码</div>
+                <div>
+                    <input type="password" name="password" class="input" value="a123456"/>
+                </div>
             </div>
-        </div>
-        <div class="flex flex-row">
-            <button class="btn py-2 " >登录</button>
-        </div>
+            <div class="flex flex-row gap-2 items-center">
+                <button class="btn py-2" type="submit">登录</button>
+                <div class="text-red text-sm">{{.msg}}</div>
+            </div>
 
-        <p class="text-sm text-gray">忘记密码?<a class="aLink" href="/resetPwd">重置密码</a></p>
-        <p class="text-sm text-gray">
-            没有账户?本站基于邀请机制,找<a class="aLink" href="/">已注册用户</a>邀请吧
-        </p>
-    </div>
+            <p class="text-sm text-gray">忘记密码?<a class="aLink" href="/resetPwd">重置密码</a></p>
+            <p class="text-sm text-gray">
+                没有账户?本站基于邀请机制,找<a class="aLink" href="/">已注册用户</a>邀请吧
+            </p>
+        </div>
+    </form>
 </div>
 {{end}}

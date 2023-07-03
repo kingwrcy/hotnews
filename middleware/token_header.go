@@ -1,27 +1,17 @@
 package middleware
 
-//func CheckHeader(injector *do.Injector) gin.HandlerFunc {
 //
-//srv := do.MustInvoke[*service.TokenService](injector)
-//return func(c *gin.Context) {
-//	token := c.GetHeader("token")
-//	if token == "" {
-//		c.JSON(200, gin.H{
-//			"code": 1,
-//			"msg":  "token为空",
-//		})
-//		c.Abort()
-//		return
+//import (
+//	"github.com/gin-contrib/sessions"
+//	"github.com/gin-gonic/gin"
+//	"github.com/samber/do"
+//)
+//
+//func SessionHandler(injector *do.Injector) gin.HandlerFunc {
+//
+//	return func(c *gin.Context) {
+//		session := sessions.Default(c)
+//
 //	}
-//	if !srv.CheckExists(token) {
-//		c.JSON(200, gin.H{
-//			"code": 1,
-//			"msg":  "token无效",
-//		})
-//		c.Abort()
-//		return
-//	}
-//	c.Next()
-//}
 //
 //}

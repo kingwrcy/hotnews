@@ -1,0 +1,11 @@
+{{ define "title"}}<title>标签</title>{{ end }}
+
+{{define "content"}}
+{{range .tags}}
+    {{if not .ParentID}}
+        <p>{{.Name}}</p>
+    {{else}}
+        <div>{{.Name}}</div>
+    {{end}}
+{{end}}
+{{end}}

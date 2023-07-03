@@ -1,12 +1,16 @@
 package main
 
 import (
+	"encoding/gob"
 	"fmt"
 	"github.com/gin-contrib/multitemplate"
+	"github.com/gin-contrib/sessions"
+	"github.com/gin-contrib/sessions/cookie"
 	"github.com/gin-gonic/gin"
 	"github.com/kingwrcy/hn/handler"
 	"github.com/kingwrcy/hn/model"
 	"github.com/kingwrcy/hn/provider"
+	"github.com/kingwrcy/hn/vo"
 	"github.com/samber/do"
 	"path/filepath"
 
@@ -22,13 +26,15 @@ func main() {
 
 	db := do.MustInvoke[*gorm.DB](injector)
 	config := do.MustInvoke[*provider.AppConfig](injector)
-	err := db.AutoMigrate(&model.TbUser{})
+	err := db.AutoMigrate(&model.TbUser{}, &model.TbInviteRecord{}, &model.TbPost{})
 	if err != nil {
 		log.Printf("升级数据库异常,启动失败.%s", err)
 		return
 	}
-
+	gob.Register(vo.Userinfo{})
 	engine := gin.Default()
+	store := cookie.NewStore([]byte(config.CookieSecret))
+	engine.Use(sessions.Sessions("c", store))
 	engine.HTMLRender = loadTemplates("./templates")
 	engine.Static("/static", "./static")
 

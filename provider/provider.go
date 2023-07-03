@@ -8,8 +8,9 @@ import (
 )
 
 type AppConfig struct {
-	Port int    `yaml:"port" env:"PORT" env-default:"7832"`
-	DB   string `yaml:"db" env:"DB" env-default:"/app/data.sqlite"`
+	Port         int    `yaml:"port" env:"PORT" env-default:"7832"`
+	DB           string `yaml:"db" env:"DB" env-default:"/app/data.sqlite"`
+	CookieSecret string `yaml:"cookieSecret" env:""`
 }
 
 func NewRepository(i *do.Injector) (*gorm.DB, error) {

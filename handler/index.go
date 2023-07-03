@@ -2,6 +2,7 @@ package handler
 
 import (
 	"github.com/gin-gonic/gin"
+	"github.com/kingwrcy/hn/model"
 	"github.com/samber/do"
 	"gorm.io/gorm"
 )
@@ -19,7 +20,7 @@ func NewIndexHandler(injector *do.Injector) (*IndexHandler, error) {
 }
 
 func (i *IndexHandler) Index(c *gin.Context) {
-	c.HTML(200, "index.html", gin.H{})
+	c.HTML(200, "index.html", OutputCommonSession(c, gin.H{}))
 }
 
 func (i *IndexHandler) ToSearch(c *gin.Context) {
@@ -35,4 +36,14 @@ func (i *IndexHandler) ToPost(c *gin.Context) {
 }
 func (i *IndexHandler) ToResetPwd(c *gin.Context) {
 	c.HTML(200, "resetPwd.html", gin.H{})
+}
+func (i *IndexHandler) ToBeInvited(c *gin.Context) {
+	c.HTML(200, "toBeInvited.html", gin.H{})
+}
+func (i *IndexHandler) ToTags(c *gin.Context) {
+	var tags []model.TbTag
+	i.db.Model(model.TbTag{}).Find(&tags)
+	c.HTML(200, "tags.html", OutputCommonSession(c, gin.H{
+		"tags": tags,
+	}))
 }

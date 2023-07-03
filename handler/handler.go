@@ -1,8 +1,11 @@
 package handler
 
 import (
+	"github.com/gin-contrib/sessions"
 	"github.com/gin-gonic/gin"
+	"github.com/kingwrcy/hn/vo"
 	"github.com/samber/do"
+	"math/rand"
 )
 
 func Setup(injector *do.Injector, engine *gin.Engine) {
@@ -10,88 +13,76 @@ func Setup(injector *do.Injector, engine *gin.Engine) {
 
 	userHandler := do.MustInvoke[*UserHandler](injector)
 	indexHandler := do.MustInvoke[*IndexHandler](injector)
+	postHandler := do.MustInvoke[*PostHandler](injector)
 
 	engine.GET("/", indexHandler.Index)
 	engine.GET("/search", indexHandler.ToSearch)
 	engine.GET("/new", indexHandler.ToNew)
 	engine.GET("/s/:id", indexHandler.ToPost)
 	engine.GET("/resetPwd", indexHandler.ToResetPwd)
+	engine.GET("/tags", indexHandler.ToTags)
 
 	userGroup := engine.Group("/u")
 	userGroup.POST("/login", userHandler.Login)
 	userGroup.GET("/login", userHandler.ToLogin)
+	userGroup.GET("/logout", userHandler.Logout)
 	userGroup.GET("/profile/:id", userHandler.ToProfile)
+	userGroup.GET("/invite/:code", userHandler.ToProfile)
 
+	postGroup := engine.Group("/p")
+	postGroup.POST("/new", postHandler.Add)
 }
-
-//
-//// 定义一个全局翻译器T
-//var trans ut.Translator
-//
-//// InitTrans 初始化翻译器
-//func InitTrans(locale string) (err error) {
-//	// 修改gin框架中的Validator引擎属性，实现自定制
-//	if v, ok := binding.Validator.Engine().(*validator.Validate); ok {
-//
-//		zhT := zh.New() // 中文翻译器
-//		enT := en.New() // 英文翻译器
-//
-//		// 第一个参数是备用（fallback）的语言环境
-//		// 后面的参数是应该支持的语言环境（支持多个）
-//		// uni := ut.New(zhT, zhT) 也是可以的
-//		uni := ut.New(enT, zhT, enT)
-//
-//		// locale 通常取决于 http 请求头的 'Accept-Language'
-//		var ok bool
-//		// 也可以使用 uni.FindTranslator(...) 传入多个locale进行查找
-//		trans, ok = uni.GetTranslator(locale)
-//		if !ok {
-//			return fmt.Errorf("uni.GetTranslator(%s) failed", locale)
-//		}
-//
-//		// 注册翻译器
-//		switch locale {
-//		case "en":
-//			err = enTranslations.RegisterDefaultTranslations(v, trans)
-//		case "zh":
-//			err = zhTranslations.RegisterDefaultTranslations(v, trans)
-//		default:
-//			err = enTranslations.RegisterDefaultTranslations(v, trans)
-//		}
-//		return
-//	}
-//	return
-//}
 
 func provideHandlers(injector *do.Injector) {
 	do.Provide(injector, NewIndexHandler)
 	do.Provide(injector, NewUserHandler)
+	do.Provide(injector, NewPostHandler)
 }
 
-func handleParamError(c *gin.Context, obj interface{}) error {
-	if err := c.ShouldBindJSON(&obj); err != nil {
-		c.HTML(200, "error", gin.H{
-			"error": err.Error(),
-		})
-		return err
+const letterBytes = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
+const (
+	letterIdxBits = 6                    // 6 bits to represent a letter index
+	letterIdxMask = 1<<letterIdxBits - 1 // All 1-bits, as many as letterIdxBits
+	letterIdxMax  = 63 / letterIdxBits   // # of letter indices fitting in 63 bits
+)
+
+func RandStringBytesMaskImpr(n int) string {
+	b := make([]byte, n)
+	// A rand.Int63() generates 63 random bits, enough for letterIdxMax letters!
+	for i, cache, remain := n-1, rand.Int63(), letterIdxMax; i >= 0; {
+		if remain == 0 {
+			cache, remain = rand.Int63(), letterIdxMax
+		}
+		if idx := int(cache & letterIdxMask); idx < len(letterBytes) {
+			b[i] = letterBytes[idx]
+			i--
+		}
+		cache >>= letterIdxBits
+		remain--
 	}
-	return nil
+	return string(b)
 }
 
-func success(c *gin.Context, data interface{}) {
-	c.JSON(200, gin.H{
-		"code": 0,
-		"data": data,
-	})
+func GetCurrentUserID(c *gin.Context) uint {
+	session := sessions.Default(c)
+	login := session.Get("login")
+	if login != nil {
+		userinfo := session.Get("userinfo")
+		if v, ok := userinfo.(vo.Userinfo); ok {
+			return v.ID
+		}
+	}
+	return 0
 }
 
-func fail(c *gin.Context, msg string) {
-	failWithCode(c, 2, msg)
-}
-func failWithCode(c *gin.Context, code int, msg string) {
-	c.JSON(200, gin.H{
-		"code": code,
-		"msg":  msg,
-	})
-	c.Abort()
+func OutputCommonSession(c *gin.Context, h gin.H) gin.H {
+	session := sessions.Default(c)
+	result := gin.H{}
+
+	result["login"] = session.Get("login")
+	result["userinfo"] = session.Get("userinfo")
+	for k, v := range h {
+		result[k] = v
+	}
+	return result
 }

@@ -30,7 +30,8 @@ func (u *UserHandler) Login(c *gin.Context) {
 	if err != nil {
 		log.Printf("error2 is %s", err)
 		c.HTML(200, "login.html", gin.H{
-			"msg": "参数错误",
+			"msg":      "参数错误",
+			"selected": "login",
 		})
 		return
 	}
@@ -43,20 +44,23 @@ func (u *UserHandler) Login(c *gin.Context) {
 
 		log.Printf("error is %s", err)
 		c.HTML(200, "login.html", gin.H{
-			"msg": "登录失败，用户名或者密码不正确 not exists",
+			"msg":      "登录失败，用户名或者密码不正确 not exists",
+			"selected": "login",
 		})
 		return
 	}
 	log.Printf("req is %+v", user)
 	if bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(request.Password)) != nil {
 		c.HTML(200, "login.html", gin.H{
-			"msg": "登录失败，用户名或者密码不正确",
+			"msg":      "登录失败，用户名或者密码不正确",
+			"selected": "login",
 		})
 		return
 	}
 	if user.Status == "Banned" {
 		c.HTML(200, "login.html", gin.H{
-			"msg": "用户已被ban",
+			"msg":      "用户已被ban",
+			"selected": "login",
 		})
 		return
 	}
@@ -76,7 +80,9 @@ func (u *UserHandler) Login(c *gin.Context) {
 }
 
 func (u *UserHandler) ToLogin(c *gin.Context) {
-	c.HTML(200, "login.html", gin.H{})
+	c.HTML(200, "login.html", OutputCommonSession(c, gin.H{
+		"selected": "login",
+	}))
 }
 func (u *UserHandler) Logout(c *gin.Context) {
 	session := sessions.Default(c)
@@ -84,7 +90,9 @@ func (u *UserHandler) Logout(c *gin.Context) {
 	c.Redirect(302, "/")
 }
 func (u *UserHandler) ToProfile(c *gin.Context) {
-	c.HTML(200, "profile.html", gin.H{})
+	c.HTML(200, "profile.html", OutputCommonSession(c, gin.H{
+		"selected": "mine",
+	}))
 }
 func (u *UserHandler) DoInvited(c *gin.Context) {
 	code := c.Param("code")

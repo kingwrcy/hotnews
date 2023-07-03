@@ -14,17 +14,18 @@
             </g>
         </svg>
     </div>
-    <div class="hover:text-hover selected "><a href="/">当前</a></div>
-    <div class="hover:text-hover"><a href="/search">历史</a></div>
-    <div class="hover:text-hover"><a href="/search">评论</a></div>
-    <div class="hover:text-hover"><a href="/search">搜索</a></div>
+    <div class='hover:text-hover {{if eq .selected "/"}}selected{{end}}'><a href="/">当前</a></div>
+    <div class='hover:text-hover {{if eq .selected "history"}}selected{{end}}'><a href="/search">历史</a></div>
+    <div class='hover:text-hover {{if eq .selected "comment"}}selected{{end}}'><a href="/search">评论</a></div>
+    <div class='hover:text-hover {{if eq .selected "tags"}}selected{{end}} '><a href="/tags">标签</a></div>
+    <div class='hover:text-hover {{if eq .selected "search"}}selected{{end}}'><a href="/search">搜索</a></div>
     <div class="flex flex-row items-center ml-auto gap2">
         {{ if eq .login true}}
-          <div class="hover:text-hover"><a href="/new">提交</a></div>
-          <div class="hover:text-hover"><a href="/u/profile/{{.userinfo.Username}}">{{.userinfo.Username}}</a></div>
+          <div class='hover:text-hover {{if eq .selected "new"}}selected{{end}}'><a href="/new">提交</a></div>
+          <div class='hover:text-hover {{if eq .selected "mine"}}selected{{end}}'><a href="/u/profile/{{.userinfo.Username}}">{{.userinfo.Username}}</a></div>
           <div class="hover:text-hover"><a href="/u/logout">登出</a></div>
         {{else}}
-          <div class="hover:text-hover"><a href="/u/login">登录</a></div>
+          <div class='hover:text-hover {{if eq .selected "login"}}selected{{end}}'><a href="/u/login">登录</a></div>
         {{ end }}
     </div>
 </div>

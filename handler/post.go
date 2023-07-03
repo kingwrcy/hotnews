@@ -6,6 +6,8 @@ import (
 	"github.com/kingwrcy/hn/vo"
 	"github.com/samber/do"
 	"gorm.io/gorm"
+	"log"
+	"net/url"
 )
 
 type PostHandler struct {
@@ -29,21 +31,25 @@ func (p PostHandler) Add(c *gin.Context) {
 
 	var request vo.NewPostRequest
 	if err := c.Bind(&request); err != nil {
-		c.HTML(200, "new.html", gin.H{
-			"msg": "参数异常",
-		})
+		c.HTML(200, "new.html", OutputCommonSession(c, gin.H{
+			"msg":      "参数异常",
+			"selected": "new",
+		}))
 		return
 	}
+	log.Printf("params:%+v", request)
 	if len(request.TagIDs) == 0 || len(request.TagIDs) > 5 {
-		c.HTML(200, "new.html", gin.H{
-			"msg": "标签最少1个,最多5个",
-		})
+		c.HTML(200, "new.html", OutputCommonSession(c, gin.H{
+			"msg":      "标签最少1个,最多5个",
+			"selected": "new",
+		}))
 		return
 	}
 	if request.Type == "" {
-		c.HTML(200, "new.html", gin.H{
-			"msg": "类型必填",
-		})
+		c.HTML(200, "new.html", OutputCommonSession(c, gin.H{
+			"msg":      "类型必填",
+			"selected": "new",
+		}))
 		return
 	}
 
@@ -53,6 +59,10 @@ func (p PostHandler) Add(c *gin.Context) {
 			Model: gorm.Model{ID: v},
 		})
 	}
+	var user model.TbUser
+	p.db.Model(model.TbUser{}).Where("id=?", uid).First(&user)
+
+	urlParsed, _ := url.Parse(request.Link)
 	post := model.TbPost{
 		Title:    request.Title,
 		Link:     request.Link,
@@ -63,25 +73,28 @@ func (p PostHandler) Add(c *gin.Context) {
 		Type:     request.Type,
 		Tags:     tags,
 		User:     model.TbUser{Model: gorm.Model{ID: uid}},
+		Domain:   urlParsed.Host,
 	}
 
 	err := p.db.Transaction(func(tx *gorm.DB) error {
-		if err := tx.Save(post).Error; err != nil {
+		if err := tx.Save(&post).Error; err != nil {
 			return err
 		}
-		if err := tx.Model(&model.TbUser{Model: gorm.Model{ID: uid}}).Update("postCount", "postCount+1").Error; err != nil {
+		if err := tx.Model(&model.TbUser{Model: gorm.Model{ID: uid}}).Update("postCount", user.PostCount+1).Error; err != nil {
 			return err
 		}
 		return nil
 	})
 	if err != nil {
-		c.HTML(200, "new.html", gin.H{
-			"msg": "系统错误",
-		})
+		c.HTML(200, "new.html", OutputCommonSession(c, gin.H{
+			"msg":      "系统错误",
+			"selected": "new",
+		}))
 		return
 	}
-	c.HTML(200, "new.html", gin.H{
-		"msg": "提交成功,等待审核",
-	})
+	c.HTML(200, "new.html", OutputCommonSession(c, gin.H{
+		"msg":      "提交成功,等待审核",
+		"selected": "new",
+	}))
 	return
 }

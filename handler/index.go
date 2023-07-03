@@ -20,30 +20,40 @@ func NewIndexHandler(injector *do.Injector) (*IndexHandler, error) {
 }
 
 func (i *IndexHandler) Index(c *gin.Context) {
-	c.HTML(200, "index.html", OutputCommonSession(c, gin.H{}))
+	c.HTML(200, "index.html", OutputCommonSession(c, gin.H{
+		"selected": "/",
+	}))
 }
 
 func (i *IndexHandler) ToSearch(c *gin.Context) {
-	c.HTML(200, "search.html", gin.H{})
+	c.HTML(200, "search.html", OutputCommonSession(c, gin.H{
+		"selected": "search",
+	}))
 }
 
 func (i *IndexHandler) ToNew(c *gin.Context) {
-	c.HTML(200, "new.html", gin.H{})
+	var tags []model.TbTag
+	i.db.Model(&model.TbTag{}).Find(&tags)
+	c.HTML(200, "new.html", OutputCommonSession(c, gin.H{
+		"selected": "new",
+		"tags":     tags,
+	}))
 }
 
 func (i *IndexHandler) ToPost(c *gin.Context) {
-	c.HTML(200, "post.html", gin.H{})
+	c.HTML(200, "post.html", OutputCommonSession(c, gin.H{}))
 }
 func (i *IndexHandler) ToResetPwd(c *gin.Context) {
-	c.HTML(200, "resetPwd.html", gin.H{})
+	c.HTML(200, "resetPwd.html", OutputCommonSession(c, gin.H{}))
 }
 func (i *IndexHandler) ToBeInvited(c *gin.Context) {
-	c.HTML(200, "toBeInvited.html", gin.H{})
+	c.HTML(200, "toBeInvited.html", OutputCommonSession(c, gin.H{}))
 }
 func (i *IndexHandler) ToTags(c *gin.Context) {
 	var tags []model.TbTag
 	i.db.Model(model.TbTag{}).Find(&tags)
 	c.HTML(200, "tags.html", OutputCommonSession(c, gin.H{
-		"tags": tags,
+		"tags":     tags,
+		"selected": "tags",
 	}))
 }

@@ -17,6 +17,7 @@ type TbPost struct {
 	UserID   uint
 	Tags     []TbTag `gorm:"many2many:tb_post_tag"`
 	Remark   string  `gorm:"column:remark;type:varchar(256)"`
+	Domain   string  `gorm:"column:domain;type:varchar(256)"`
 }
 
 func (*TbPost) TableName() string {

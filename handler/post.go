@@ -8,6 +8,7 @@ import (
 	"gorm.io/gorm"
 	"log"
 	"net/url"
+	"strings"
 )
 
 type PostHandler struct {
@@ -22,12 +23,21 @@ func NewPostHandler(injector *do.Injector) (*PostHandler, error) {
 	}, nil
 }
 
+func (p PostHandler) Detail(c *gin.Context) {
+	var posts []model.TbPost
+	p.db.Model(model.TbPost{}).Where("pid = ?", c.Param("pid")).First(&posts)
+	c.HTML(200, "post.html", OutputCommonSession(c, gin.H{
+		"posts":    posts,
+		"selected": "detail",
+	}))
+}
 func (p PostHandler) Add(c *gin.Context) {
-	uid := GetCurrentUserID(c)
-	if uid == 0 {
-		c.Redirect(302, "/login")
+	userinfo := GetCurrentUser(c)
+	if userinfo == nil {
+		c.Redirect(302, "/u/login")
 		return
 	}
+	uid := userinfo.ID
 
 	var request vo.NewPostRequest
 	if err := c.Bind(&request); err != nil {
@@ -61,19 +71,29 @@ func (p PostHandler) Add(c *gin.Context) {
 	}
 	var user model.TbUser
 	p.db.Model(model.TbUser{}).Where("id=?", uid).First(&user)
+	status := "WAIT_APPROVE"
+	if request.Type == "ask" {
+		status = "Active"
+	}
 
-	urlParsed, _ := url.Parse(request.Link)
+	host := ""
+	if request.Type == "link" {
+		urlParsed, _ := url.Parse(request.Link)
+		host = urlParsed.Host
+	}
+
 	post := model.TbPost{
-		Title:    request.Title,
-		Link:     request.Link,
-		Status:   "WAIT_APPROVE",
-		Content:  request.Content,
+		Title:    strings.Trim(request.Title, " "),
+		Link:     strings.Trim(request.Link, " "),
+		Status:   status,
+		Content:  strings.Trim(request.Content, " "),
 		UpVote:   0,
 		DownVote: 0,
 		Type:     request.Type,
 		Tags:     tags,
 		User:     model.TbUser{Model: gorm.Model{ID: uid}},
-		Domain:   urlParsed.Host,
+		Domain:   host,
+		Pid:      RandStringBytesMaskImpr(8),
 	}
 
 	err := p.db.Transaction(func(tx *gorm.DB) error {
@@ -92,9 +112,48 @@ func (p PostHandler) Add(c *gin.Context) {
 		}))
 		return
 	}
+	if request.Type == "ask" {
+		c.Redirect(302, "/p/"+post.Pid)
+		return
+	}
 	c.HTML(200, "new.html", OutputCommonSession(c, gin.H{
 		"msg":      "提交成功,等待审核",
 		"selected": "new",
 	}))
 	return
+}
+
+func (p PostHandler) AddComment(c *gin.Context) {
+	userinfo := GetCurrentUser(c)
+	if userinfo == nil {
+		c.Redirect(302, "/u/login")
+		return
+	}
+	uid := userinfo.ID
+	var comment model.TbComment
+	var request vo.NewCommentRequest
+	err := c.Bind(&request)
+	if err != nil {
+		c.Redirect(302, "/")
+		return
+	}
+	comment.PostID = request.PostID
+	comment.ParentCommentID = &request.ParentCommentId
+	comment.Content = request.Content
+	comment.UserID = uid
+
+	err = p.db.Transaction(func(tx *gorm.DB) error {
+		if err := tx.Save(&comment).Error; err != nil {
+			return err
+		}
+		if err := tx.Model(&model.TbPost{}).Where("id = ?", request.PostID).Update("commentCount", gorm.Expr("commentCount + 1")).Error; err != nil {
+			return err
+		}
+		return nil
+	})
+	if err != nil {
+		c.Redirect(302, "/")
+		return
+	}
+	c.Redirect(302, "/p/"+request.PostPID)
 }

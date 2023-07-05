@@ -12,11 +12,28 @@ import (
 	"github.com/kingwrcy/hn/provider"
 	"github.com/kingwrcy/hn/vo"
 	"github.com/samber/do"
+	"html/template"
 	"path/filepath"
+	"time"
 
 	"gorm.io/gorm"
 	"log"
 )
+
+func timeAgo(target time.Time) string {
+	duration := time.Now().Sub(target)
+	if duration < time.Second {
+		return "刚刚"
+	} else if duration < time.Minute {
+		return fmt.Sprintf("%d秒前", duration/time.Second)
+	} else if duration < time.Hour {
+		return fmt.Sprintf("%d分钟前", duration/time.Minute)
+	} else if duration < 24*time.Hour {
+		return fmt.Sprintf("%d小时前", duration/time.Hour)
+	} else {
+		return fmt.Sprintf("%d天前", duration/(24*time.Hour))
+	}
+}
 
 func main() {
 	injector := do.New()
@@ -26,7 +43,7 @@ func main() {
 
 	db := do.MustInvoke[*gorm.DB](injector)
 	config := do.MustInvoke[*provider.AppConfig](injector)
-	err := db.AutoMigrate(&model.TbUser{}, &model.TbInviteRecord{}, &model.TbPost{})
+	err := db.AutoMigrate(&model.TbUser{}, &model.TbInviteRecord{}, &model.TbPost{}, &model.TbInspectLog{}, &model.TbComment{})
 	if err != nil {
 		log.Printf("升级数据库异常,启动失败.%s", err)
 		return
@@ -34,6 +51,7 @@ func main() {
 	gob.Register(vo.Userinfo{})
 	engine := gin.Default()
 	store := cookie.NewStore([]byte(config.CookieSecret))
+
 	engine.Use(sessions.Sessions("c", store))
 	engine.HTMLRender = loadTemplates("./templates")
 	engine.Static("/static", "./static")
@@ -46,7 +64,6 @@ func main() {
 
 func loadTemplates(templatesDir string) multitemplate.Renderer {
 	r := multitemplate.NewRenderer()
-
 	layouts, err := filepath.Glob(templatesDir + "/layouts/*.html")
 	if err != nil {
 		panic(err.Error())
@@ -62,7 +79,9 @@ func loadTemplates(templatesDir string) multitemplate.Renderer {
 		layoutCopy := make([]string, len(layouts))
 		copy(layoutCopy, layouts)
 		files := append(layoutCopy, include)
-		r.AddFromFiles(filepath.Base(include), files...)
+		r.AddFromFilesFuncs(filepath.Base(include), template.FuncMap{
+			"timeAgo": timeAgo,
+		}, files...)
 	}
 	return r
 }

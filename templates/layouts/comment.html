@@ -1,18 +1,26 @@
 {{define "comment"}}
-<div class="flex flex-col gap-2 mt-4">
+<form method="post" action="/p/comment">
+    <input type="hidden" name="post_pid" value="{{(index .posts 0).Pid}}">
+    <input type="hidden" name="post_id" value="{{(index .posts 0).ID}}">
+    <input type="hidden" name="parent_comment_id" value="">
+    <div class="flex flex-col gap-2 mt-4">
     <textarea
-            name=""
-            id=""
+            name="content"
+            id="comment"
             cols="30"
-            rows="10"
+            rows="5"
             class="input"
             placeholder="需要登录才能发表评论"
+            {{if not .login}}disabled="disabled"{{end}}
     ></textarea>
-    <div class="flex flex-row gap2 mt-2">
-        <button class="btn">发表评论</button>
-        <button class="text-sm px-4 rounded bg-white border text-black">
-            预览
-        </button>
+        {{if .login}}
+        <div class="flex flex-row gap2 mt-2">
+            <button class="btn" type="submit">发表评论</button>
+            <button class="text-sm px-4 rounded bg-white border text-black">
+                预览
+            </button>
+        </div>
+        {{end}}
     </div>
-</div>
+</form>
 {{end}}

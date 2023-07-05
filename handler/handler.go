@@ -14,6 +14,7 @@ func Setup(injector *do.Injector, engine *gin.Engine) {
 	userHandler := do.MustInvoke[*UserHandler](injector)
 	indexHandler := do.MustInvoke[*IndexHandler](injector)
 	postHandler := do.MustInvoke[*PostHandler](injector)
+	inspectHandler := do.MustInvoke[*InspectHandler](injector)
 
 	engine.GET("/", indexHandler.Index)
 	engine.GET("/search", indexHandler.ToSearch)
@@ -21,6 +22,8 @@ func Setup(injector *do.Injector, engine *gin.Engine) {
 	engine.GET("/s/:id", indexHandler.ToPost)
 	engine.GET("/resetPwd", indexHandler.ToResetPwd)
 	engine.GET("/tags", indexHandler.ToTags)
+	engine.GET("/wait", indexHandler.ToWaitApproved)
+	engine.POST("/inspect", inspectHandler.Inspect)
 
 	userGroup := engine.Group("/u")
 	userGroup.POST("/login", userHandler.Login)
@@ -31,12 +34,15 @@ func Setup(injector *do.Injector, engine *gin.Engine) {
 
 	postGroup := engine.Group("/p")
 	postGroup.POST("/new", postHandler.Add)
+	postGroup.GET("/:pid", postHandler.Detail)
+	postGroup.POST("/comment", postHandler.AddComment)
 }
 
 func provideHandlers(injector *do.Injector) {
 	do.Provide(injector, NewIndexHandler)
 	do.Provide(injector, NewUserHandler)
 	do.Provide(injector, NewPostHandler)
+	do.Provide(injector, newInspectHandler)
 }
 
 const letterBytes = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
@@ -63,16 +69,16 @@ func RandStringBytesMaskImpr(n int) string {
 	return string(b)
 }
 
-func GetCurrentUserID(c *gin.Context) uint {
+func GetCurrentUser(c *gin.Context) *vo.Userinfo {
 	session := sessions.Default(c)
 	login := session.Get("login")
 	if login != nil {
 		userinfo := session.Get("userinfo")
 		if v, ok := userinfo.(vo.Userinfo); ok {
-			return v.ID
+			return &v
 		}
 	}
-	return 0
+	return nil
 }
 
 func OutputCommonSession(c *gin.Context, h gin.H) gin.H {

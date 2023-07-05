@@ -21,6 +21,13 @@
     <div class='hover:text-hover {{if eq .selected "search"}}selected{{end}}'><a href="/search">搜索</a></div>
     <div class="flex flex-row items-center ml-auto gap2">
         {{ if eq .login true}}
+        {{ if or (eq .userinfo.Role "admin") (eq .userinfo.Role "inspector")}}
+            {{if and (.waitApproved) (gt .waitApproved 0)}}
+              <div class='hover:text-hover {{if eq .selected "approve"}}selected{{end}} {{if and (.waitApproved) (gt .waitApproved 0)}}text-red{{end}}'><a href="/wait">
+                  待审核({{.waitApproved}})
+              </a></div>
+            {{end}}
+        {{end}}
           <div class='hover:text-hover {{if eq .selected "new"}}selected{{end}}'><a href="/new">提交</a></div>
           <div class='hover:text-hover {{if eq .selected "mine"}}selected{{end}}'><a href="/u/profile/{{.userinfo.Username}}">{{.userinfo.Username}}</a></div>
           <div class="hover:text-hover"><a href="/u/logout">登出</a></div>

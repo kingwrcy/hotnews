@@ -1,6 +1,23 @@
-{{ define "title"}}<title>content</title>{{ end }}
-
-
+{{ define "title"}}<title>{{(index .posts 0).Title}}</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sceditor@latest/minified/themes/default.min.css" />
+<script src="https://cdn.jsdelivr.net/combine/npm/sceditor@latest/minified/sceditor.min.js,npm/sceditor@latest/minified/formats/bbcode.min.js,npm/sceditor@latest/minified/icons/monocons.min.js"></script>
+<script src="https://cdn.jsdelivr.net/combine/npm/sceditor@latest/languages/cn.js"></script>
+<script>
+    $(function(){
+        var textarea = document.getElementById('comment');
+        sceditor.create(textarea, {
+            toolbar: 'bold,underline,color,bulletlist,orderedlist,code,quote,image,email,link,unlink,maximize',
+            format: 'bbcode',
+            icons: 'monocons',
+            emoticonsEnabled:false,
+            autofocus:true,
+            locale:'cn',
+            resizeEnabled:false,
+            style: 'https://cdn.jsdelivr.net/npm/sceditor@latest/minified/themes/content/default.min.css'
+        });
+    })
+</script>
+{{ end }}
 {{define "content"}}
 {{template "post" .}}
 {{template "comment" .}}

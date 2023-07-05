@@ -87,6 +87,8 @@ func (u *UserHandler) ToLogin(c *gin.Context) {
 func (u *UserHandler) Logout(c *gin.Context) {
 	session := sessions.Default(c)
 	session.Clear()
+	session.Options(sessions.Options{Path: "/", MaxAge: -1})
+	session.Save()
 	c.Redirect(302, "/")
 }
 func (u *UserHandler) ToProfile(c *gin.Context) {

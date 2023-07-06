@@ -5,16 +5,16 @@
 
 {{range  $index, $post := .posts}}
 
-<div class="flex flex-row gap-4 items-center mt-2 flex-1">
+<div class="flex flex-row gap-4 mt-2 flex-1 items-start">
     <div class="flex flex-col items-center cursor-pointer">
         <div class="text-coolGray hover:text-link">
             <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24"><path fill="currentColor" d="M1 21h22L12 2"/></svg>
         </div>
         <div class="text-sm text-coolGray">{{$post.UpVote}}</div>
     </div>
-    <div class="flex flex-col flex-1">
+    <div class="flex flex-col flex-1 ">
         <div class="flex flex-row gap-2 items-center">
-            <div class="font-bold text-blue-7 text-sm">
+            <div class="font-bold text-gray-6 text-sm">
                 {{ if eq $post.Type "ask"}}
                     <a href="/p/{{$post.Pid}}" >{{$post.Title}}</a>
                 {{else}}
@@ -41,24 +41,55 @@
 
         <div class="flex flex-row gap2 items-center text-xs text-gray">
             <div class="avatar">
-                <a href="/u/profile/{{$post.UserID}}"
+                <a href="/u/profile/{{$post.User.Username}}"
                 ><img class="w-5 h-5 rounded" src="https://i.pravatar.cc/30?img=1" alt=""
                 /></a>
             </div>
-            <div ><a class="cursor-pointer  hover:text-hover" href="/u/profile/{{$post.UserID}}">{{$post.User.Username}}</a></div>
+            <div ><a class="cursor-pointer  hover:text-hover" href="/u/profile/{{$post.User.Username}}">{{$post.User.Username}}</a></div>
             <div class="when">{{$post.CreatedAt | timeAgo}}</div>
             <div>|</div>
             <div class="cursor-pointer  hover:text-hover">
-                <a href="/p/{{$post.Pid}}">15评论</a>
+                <a href="/p/{{$post.Pid}}">{{$post.CommentCount}}评论</a>
             </div>
         </div>
+        {{ if eq $.selected "detail"}}
+        <div class="mt-2 text-sm content" >
+            {{$post.Content | unEscapeHTML}}
+        </div>
+        {{end}}
+        {{ if eq $.selected "detail" }}
+        <form method="post" action="/p/comment" id="comment_form">
+            <input type="hidden" name="post_pid" value="{{$post.Pid}}">
+            <input type="hidden" name="post_id" value="{{$post.ID}}">
+            <input type="hidden" name="parent_comment_id" value="">
+            <div class="flex flex-col gap-2 mt-4">
+    <textarea
+            name="content"
+            id="comment"
+            cols="30"
+            rows="5"
+            class="input"
+    ></textarea>
+
+                <div class="flex flex-row gap2 mt-2">
+                    <button class="btn" type="submit">发表评论</button>
+                </div>
+
+            </div>
+        </form>
+
+        {{end}}
+
+        {{if gt (len $post.Comments) 0}}
+        <div id="comment-tree" class="mt-4 relative">
+            {{range $post.Comments}}
+                {{template "comment" dict "Comment" . "Post" $post}}
+            {{end}}
+        </div>
+        {{end}}
     </div>
 </div>
-{{ if eq $.selected "detail"}}
-<div class="mt-2 text-sm">
-    {{$post.Content}}
-</div>
-{{end}}
+
 {{ if eq $.selected "approve"}}
 <form action="/inspect" method="post">
     <div class="flex flex-col gap2 mt-2 text-xs" id="approve-form" data-post-id="{{$post.ID}}" >

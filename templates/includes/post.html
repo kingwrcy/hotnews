@@ -1,24 +1,77 @@
 {{ define "title"}}<title>{{(index .posts 0).Title}}</title>
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sceditor@latest/minified/themes/default.min.css" />
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sceditor@latest/minified/themes/default.min.css"/>
 <script src="https://cdn.jsdelivr.net/combine/npm/sceditor@latest/minified/sceditor.min.js,npm/sceditor@latest/minified/formats/bbcode.min.js,npm/sceditor@latest/minified/icons/monocons.min.js"></script>
 <script src="https://cdn.jsdelivr.net/combine/npm/sceditor@latest/languages/cn.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/sceditor@latest/minified/plugins/plaintext.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/sceditor@latest/minified/plugins/undo.js"></script>
 <script>
-    $(function(){
-        var textarea = document.getElementById('comment');
+    $(function () {
+        const textarea = document.getElementById('comment');
         sceditor.create(textarea, {
-            toolbar: 'bold,underline,color,bulletlist,orderedlist,code,quote,image,email,link,unlink,maximize',
+            toolbar: 'bold,underline,color,bulletlist,orderedlist,code,quote,image,email,link,unlink,maximize,removeformat',
             format: 'bbcode',
             icons: 'monocons',
-            emoticonsEnabled:false,
-            autofocus:true,
-            locale:'cn',
-            resizeEnabled:false,
+            emoticonsEnabled: false,
+            autofocus: true,
+            locale: 'cn',
+            resizeEnabled: true,
+            resizeWidth: false,
+            resizeMinHeight:100,
+            {{if not $.login}}
+                 readOnly:true,
+            {{end}}
+            plugins: 'plaintext,undo',
             style: 'https://cdn.jsdelivr.net/npm/sceditor@latest/minified/themes/content/default.min.css'
         });
+
+        $("#comment_form").on("submit", function (event) {
+            textarea.value = sceditor.instance(textarea).fromBBCode(textarea.value)
+        })
+
+        $(".reply").click(function () {
+            const cid = $(this).data('cid')
+            $(this).parents(`#c-${cid}`).find(".form-parent").first().toggle()
+            console.log("cid", cid)
+            const commentTextarea = document.getElementById(`comment-${cid}`);
+            console.log(commentTextarea)
+            const instance = sceditor.instance(commentTextarea)
+            if (instance) {
+                instance.destroy()
+                return
+            }
+            sceditor.create(commentTextarea, {
+                toolbar: 'bold,underline,color,bulletlist,orderedlist,code,quote,image,email,link,unlink,maximize,removeformat',
+                format: 'bbcode',
+                icons: 'monocons',
+                emoticonsEnabled: false,
+                autofocus: true,
+                locale: 'cn',
+                resizeEnabled: true,
+                resizeWidth: false,
+                plugins: 'plaintext,undo',
+                style: 'https://cdn.jsdelivr.net/npm/sceditor@latest/minified/themes/content/default.min.css'
+            });
+            sceditor.instance(commentTextarea).focus()
+        })
+
+        $(".toggleComment").click(function () {
+            const parent = $(this).parents("#c-" + $(this).data("cid"))
+            const value = $(this).text()
+            $(this).text(value === '[+]' ? '[-]' : '[+]')
+            parent.next(".comment-tree").toggle(200)
+        })
     })
 </script>
+<style>
+    .content > .sceditor-container > .sceditor-toolbar {
+        display: none;
+    }
+
+    .content > .sceditor-container {
+        border: 0;
+    }
+</style>
 {{ end }}
 {{define "content"}}
 {{template "post" .}}
-{{template "comment" .}}
 {{end}}

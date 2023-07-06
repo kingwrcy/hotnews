@@ -1,4 +1,4 @@
-html {
+html ,body{
     height: 100%;
     font-size: 16px;
 }
@@ -7,8 +7,8 @@ html.dark {
     background-color: #000 !important;
 }
 
-*{
-    margin:0;
+* {
+    margin: 0;
     padding: 0;
     box-sizing: border-box;
 }
@@ -17,14 +17,108 @@ html.dark {
     display: none;
 }
 
-a{
+a {
     text-decoration: none;
-    color:inherit;
+    color: inherit;
 }
 
-.header .selected > a{
+.header .selected > a {
     text-decoration: underline;
     text-decoration-color: #5468ff;
     text-decoration-thickness: 2px;
     text-underline-offset: 0.4rem;
 }
+
+.content > ol, .content > ul {
+    margin-left: 2rem;
+}
+
+.content img {
+    max-width: 200px;
+    max-height: 200px;
+    object-fit: cover;
+}
+
+
+
+.content .ios {
+    -webkit-overflow-scrolling: touch;
+    overflow: auto
+}
+
+.content .ios body {
+    overflow: auto;
+    position: relative
+}
+
+.content {
+    word-wrap: break-word;
+    min-height: 100%;
+    line-height: 1.2rem;
+}
+
+
+.content table, .content td {
+    border: 1px dotted #000;
+    empty-cells: show
+}
+
+.content table td {
+    min-width: 5px
+}
+
+.content code {
+    background: #f1f1f1;
+    direction: ltr;
+    display: block;
+    margin: .25em 0;
+    padding: 1em;
+    text-align: left;
+    white-space: pre
+}
+
+.content blockquote {
+    background: #fff7d9;
+    border-left: .3em solid #f4e59f;
+    margin: .25em 0;
+    padding: .5em .5em .5em .75em
+}
+
+.content blockquote cite {
+    border-bottom: 1px solid #f4e59f;
+    display: block;
+    font-size: 1em;
+    font-weight: 700;
+    margin: 0 -.5em .25em -.75em;
+    padding: 0 .5em .15em .75em
+}
+
+.content h1, .content h2, .content h3, .content h4, .content h5, .content h6 {
+    margin: 0;
+    padding: 0
+}
+
+.content div, .content p {
+    min-height: 1.25em
+}
+
+.content a{
+    text-decoration: underline;
+    color:#000;
+}
+
+#comment-tree .comment:target{
+    background-color: #fff7d9;
+}
+
+
+div.sceditor-group{
+    border:0 !important;
+    background-color: transparent !important;
+}
+
+.comment-tree{
+    margin-left:1.5rem;
+    border-left:1px dashed #ccc;
+}
+

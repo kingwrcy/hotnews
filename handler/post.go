@@ -6,6 +6,7 @@ import (
 	"github.com/kingwrcy/hn/vo"
 	"github.com/samber/do"
 	"gorm.io/gorm"
+	"gorm.io/gorm/clause"
 	"log"
 	"net/url"
 	"strings"
@@ -25,12 +26,30 @@ func NewPostHandler(injector *do.Injector) (*PostHandler, error) {
 
 func (p PostHandler) Detail(c *gin.Context) {
 	var posts []model.TbPost
-	p.db.Model(model.TbPost{}).Where("pid = ?", c.Param("pid")).First(&posts)
+	p.db.Model(model.TbPost{}).Preload("Comments.User").
+		Preload(clause.Associations).Where("pid = ? ", c.Param("pid")).First(&posts)
+	var rootComments []model.TbComment
+	if len(posts) > 0 {
+		p.db.Model(&model.TbComment{}).Where("post_id = ? and parent_comment_id is null", posts[0].ID).Find(&rootComments)
+
+		buildCommentTree(&rootComments, p.db)
+		posts[0].Comments = rootComments
+	}
 	c.HTML(200, "post.html", OutputCommonSession(c, gin.H{
 		"posts":    posts,
 		"selected": "detail",
 	}))
 }
+
+func buildCommentTree(comments *[]model.TbComment, db *gorm.DB) {
+	for i := range *comments {
+		var children []model.TbComment
+		db.Preload("User").Where("post_id = ? and parent_comment_id = ?", (*comments)[i].PostID, (*comments)[i].ID).Find(&children)
+		(*comments)[i].Comments = children
+		buildCommentTree(&(*comments)[i].Comments, db)
+	}
+}
+
 func (p PostHandler) Add(c *gin.Context) {
 	userinfo := GetCurrentUser(c)
 	if userinfo == nil {
@@ -70,6 +89,7 @@ func (p PostHandler) Add(c *gin.Context) {
 		})
 	}
 	var user model.TbUser
+
 	p.db.Model(model.TbUser{}).Where("id=?", uid).First(&user)
 	status := "WAIT_APPROVE"
 	if request.Type == "ask" {
@@ -83,17 +103,18 @@ func (p PostHandler) Add(c *gin.Context) {
 	}
 
 	post := model.TbPost{
-		Title:    strings.Trim(request.Title, " "),
-		Link:     strings.Trim(request.Link, " "),
-		Status:   status,
-		Content:  strings.Trim(request.Content, " "),
-		UpVote:   0,
-		DownVote: 0,
-		Type:     request.Type,
-		Tags:     tags,
-		User:     model.TbUser{Model: gorm.Model{ID: uid}},
-		Domain:   host,
-		Pid:      RandStringBytesMaskImpr(8),
+		Title:        strings.Trim(request.Title, " "),
+		Link:         strings.Trim(request.Link, " "),
+		Status:       status,
+		Content:      strings.Trim(request.Content, " "),
+		UpVote:       0,
+		DownVote:     0,
+		Type:         request.Type,
+		Tags:         tags,
+		User:         model.TbUser{Model: gorm.Model{ID: uid}},
+		Domain:       host,
+		Pid:          RandStringBytesMaskImpr(8),
+		CommentCount: 0,
 	}
 
 	err := p.db.Transaction(func(tx *gorm.DB) error {
@@ -138,9 +159,18 @@ func (p PostHandler) AddComment(c *gin.Context) {
 		return
 	}
 	comment.PostID = request.PostID
-	comment.ParentCommentID = &request.ParentCommentId
+	if request.ParentCommentId == 0 {
+		comment.ParentCommentID = nil
+	} else {
+		comment.ParentCommentID = &request.ParentCommentId
+	}
+
 	comment.Content = request.Content
 	comment.UserID = uid
+	comment.UpVote = 0
+	comment.DownVote = 0
+	comment.CID = RandStringBytesMaskImpr(8)
+	var redirectUrl = "/p/" + request.PostPID + "#c-" + comment.CID
 
 	err = p.db.Transaction(func(tx *gorm.DB) error {
 		if err := tx.Save(&comment).Error; err != nil {
@@ -155,5 +185,5 @@ func (p PostHandler) AddComment(c *gin.Context) {
 		c.Redirect(302, "/")
 		return
 	}
-	c.Redirect(302, "/p/"+request.PostPID)
+	c.Redirect(302, redirectUrl)
 }

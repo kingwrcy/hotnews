@@ -9,10 +9,14 @@ type TbComment struct {
 	UserID          uint `gorm:"column:user_id;type:int"`
 	User            TbUser
 	Content         string `gorm:"column:content;type:longtext"`
+	CID             string `gorm:"column:cid;type:varchar(20)"`
 	PostID          uint   `gorm:"column:post_id;type:int"`
 	Post            TbPost
 	ParentCommentID *uint `gorm:"column:parent_comment_id;type:int"`
 	ParentComment   *TbComment
+	UpVote          int         `gorm:"column:upVote;type:int"`
+	DownVote        int         `gorm:"column:downVote;type:int"`
+	Comments        []TbComment `gorm:"foreignKey:ParentCommentID"`
 }
 
 func (*TbComment) TableName() string {

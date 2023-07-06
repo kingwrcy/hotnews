@@ -2,6 +2,7 @@ package main
 
 import (
 	"encoding/gob"
+	"errors"
 	"fmt"
 	"github.com/gin-contrib/multitemplate"
 	"github.com/gin-contrib/sessions"
@@ -30,8 +31,10 @@ func timeAgo(target time.Time) string {
 		return fmt.Sprintf("%d分钟前", duration/time.Minute)
 	} else if duration < 24*time.Hour {
 		return fmt.Sprintf("%d小时前", duration/time.Hour)
-	} else {
+	} else if duration < 24*time.Hour*365 {
 		return fmt.Sprintf("%d天前", duration/(24*time.Hour))
+	} else {
+		return fmt.Sprintf("%d年前", duration/(24*time.Hour*365))
 	}
 }
 
@@ -81,6 +84,22 @@ func loadTemplates(templatesDir string) multitemplate.Renderer {
 		files := append(layoutCopy, include)
 		r.AddFromFilesFuncs(filepath.Base(include), template.FuncMap{
 			"timeAgo": timeAgo,
+			"unEscapeHTML": func(content string) template.HTML {
+				return template.HTML(content)
+			}, "dict": func(values ...interface{}) (map[string]interface{}, error) {
+				if len(values)%2 != 0 {
+					return nil, errors.New("invalid dict call")
+				}
+				dict := make(map[string]interface{}, len(values)/2)
+				for i := 0; i < len(values); i += 2 {
+					key, ok := values[i].(string)
+					if !ok {
+						return nil, errors.New("dict keys must be strings")
+					}
+					dict[key] = values[i+1]
+				}
+				return dict, nil
+			},
 		}, files...)
 	}
 	return r

@@ -13,7 +13,7 @@ type TbPost struct {
 	Title           string        `gorm:"column:title;type:varchar(100);"`
 	Link            string        `gorm:"column:link;type:varchar(256)"`
 	Status          string        `gorm:"column:status;type:varchar(20)"`
-	Content         string        `gorm:"column:email;type:text"`
+	Content         string        `gorm:"column:content;type:text"`
 	UnEscapeContent template.HTML `gorm:"-:all"`
 	UpVote          int           `gorm:"column:upVote;type:int"`
 	DownVote        int           `gorm:"column:downVote;type:int"`
@@ -26,6 +26,9 @@ type TbPost struct {
 	Pid             string      `gorm:"column:pid;type:varchar(20);unique"`
 	CommentCount    int         `gorm:"column:commentCount;type:int"`
 	Comments        []TbComment `gorm:"foreignKey:PostID"`
+	Point           float64     `gorm:"column:point;type:decimal(20,10)"`
+	UpVoted         bool        `gorm:"-:all"`
+	DownVoted       bool        `gorm:"-:all"`
 }
 
 func (*TbPost) TableName() string {

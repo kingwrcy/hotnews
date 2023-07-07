@@ -1,0 +1,41 @@
+{{ define "title"}}<title>评论</title>{{ end }}
+
+
+{{define "content"}}
+<div class="flex flex-col gap-2">
+
+    {{ range .comments}}
+    <div class="flex flex-col flex-1">
+        <div class="flex flex-row gap-2 text-gray text-xs">
+            <div class="text-coolGray  " onclick="upVoteComment(event,'','u')">
+                <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24"><path fill="currentColor" d="M1 21h22L12 2"/></svg>
+            </div>
+            <div class="avatar">
+                <a href="/u/profile/{{.User.Username}}"
+                ><img class="w-5 h-5 rounded" src="https://i.pravatar.cc/30?img=1" alt=""
+                /></a>
+            </div>
+            <div><a class="cursor-pointer  hover:text-hover" href="/u/profile/{{.User.Username}}">{{.User.Username}}</a>
+            </div>
+            <div class="when">{{.CreatedAt | timeAgo}}</div>
+            <div>|</div>
+            <div><a class="hover:text-hover" href="/p/{{.Post.Pid}}/#c-{{.CID}}">链接</a></div>
+            <div>|</div>
+            <a class="hover:text-hover" href="/p/{{.Post.Pid}}">{{.Post.Title}}</a>
+        </div>
+        <div class="text-sm content">
+            {{.Content | unEscapeHTML}}
+        </div>
+    </div>
+    {{end}}
+</div>
+
+<div class="flex flex-row gap2 items-center text-gray text-xs mt-4">
+    {{ if .hasPrev}}
+    <a href="?p={{sub .currentPage 1}}" class="hover:text-hover"><< 上一页</a>
+    {{end}}
+    {{ if .hasNext}}
+    <a href="?p={{add .currentPage 1}}" class="hover:text-hover">下一页>></a>
+    {{end}}
+</div>
+{{end}}

@@ -30,7 +30,7 @@ func (p PostHandler) Detail(c *gin.Context) {
 		Preload(clause.Associations).Where("pid = ? ", c.Param("pid")).First(&posts)
 	var rootComments []model.TbComment
 	if len(posts) > 0 {
-		p.db.Model(&model.TbComment{}).Where("post_id = ? and parent_comment_id is null", posts[0].ID).Find(&rootComments)
+		p.db.Model(&model.TbComment{}).Preload("User").Where("post_id = ? and parent_comment_id is null", posts[0].ID).Find(&rootComments)
 
 		buildCommentTree(&rootComments, p.db)
 		posts[0].Comments = rootComments
@@ -186,4 +186,53 @@ func (p PostHandler) AddComment(c *gin.Context) {
 		return
 	}
 	c.Redirect(302, redirectUrl)
+}
+
+func (p PostHandler) Vote(c *gin.Context) {
+	pid := c.Query("pid")
+	action := c.Query("action")
+	var vote model.TbVote
+	userinfo := GetCurrentUser(c)
+	if userinfo == nil {
+		c.Redirect(302, "/u/login")
+		return
+	}
+
+	var post model.TbPost
+	var exists int64
+	p.db.Model(&model.TbPost{}).Where("pid = ?", pid).First(&post)
+
+	uid := userinfo.ID
+
+	if p.db.Model(&model.TbVote{}).Where("post_id = ? and user_id = ?", post.ID, uid).Count(&exists); exists == 0 {
+		log.Printf("ahhaha")
+		var col string
+		if action == "u" {
+			vote.Action = "UP"
+			col = "upVote"
+		} else {
+			vote.Action = "Down"
+			col = "downVote"
+		}
+		vote.UserID = uid
+		vote.PostID = &post.ID
+		vote.CommentID = nil
+
+		p.db.Transaction(func(tx *gorm.DB) error {
+			if err := tx.Save(&vote).Error; err != nil {
+				return err
+			}
+			if err := tx.Model(&model.TbPost{}).Where("id =?", post.ID).Update(col, gorm.Expr(col+"+1")).Error; err != nil {
+				return err
+			}
+			return nil
+		})
+
+	}
+	refer := c.GetHeader("refer")
+	if refer == "" {
+		refer = "/"
+	}
+
+	c.Redirect(302, refer)
 }

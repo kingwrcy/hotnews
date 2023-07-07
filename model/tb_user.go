@@ -14,6 +14,9 @@ type TbUser struct {
 	CommentCount int    `gorm:"column:commentCount;type:int"`
 	PostCount    int    `gorm:"column:postCount;type:int"`
 	Status       string `gorm:"column:status;type:varchar(20)"`
+
+	Posts    []TbPost    `gorm:"foreignKey:UserID"`
+	Comments []TbComment `gorm:"foreignKey:UserID"`
 }
 
 func (*TbUser) TableName() string {

@@ -11,6 +11,7 @@ import (
 	"github.com/kingwrcy/hn/handler"
 	"github.com/kingwrcy/hn/model"
 	"github.com/kingwrcy/hn/provider"
+	"github.com/kingwrcy/hn/task"
 	"github.com/kingwrcy/hn/vo"
 	"github.com/samber/do"
 	"html/template"
@@ -46,7 +47,7 @@ func main() {
 
 	db := do.MustInvoke[*gorm.DB](injector)
 	config := do.MustInvoke[*provider.AppConfig](injector)
-	err := db.AutoMigrate(&model.TbUser{}, &model.TbInviteRecord{}, &model.TbPost{}, &model.TbInspectLog{}, &model.TbComment{})
+	err := db.AutoMigrate(&model.TbUser{}, &model.TbInviteRecord{}, &model.TbPost{}, &model.TbInspectLog{}, &model.TbComment{}, &model.TbVote{})
 	if err != nil {
 		log.Printf("升级数据库异常,启动失败.%s", err)
 		return
@@ -60,6 +61,8 @@ func main() {
 	engine.Static("/static", "./static")
 
 	handler.Setup(injector, engine)
+
+	go task.StartPostTask(injector)
 
 	log.Printf("启动http服务,端口:%d,监听请求中...", config.Port)
 	engine.Run(fmt.Sprintf(":%d", config.Port))
@@ -86,7 +89,14 @@ func loadTemplates(templatesDir string) multitemplate.Renderer {
 			"timeAgo": timeAgo,
 			"unEscapeHTML": func(content string) template.HTML {
 				return template.HTML(content)
-			}, "dict": func(values ...interface{}) (map[string]interface{}, error) {
+			},
+			"add": func(a, b int) int {
+				return a + b
+			},
+			"sub": func(a, b int) int {
+				return a - b
+			},
+			"dict": func(values ...interface{}) (map[string]interface{}, error) {
 				if len(values)%2 != 0 {
 					return nil, errors.New("invalid dict call")
 				}

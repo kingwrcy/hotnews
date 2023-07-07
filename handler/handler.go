@@ -15,14 +15,18 @@ func Setup(injector *do.Injector, engine *gin.Engine) {
 	indexHandler := do.MustInvoke[*IndexHandler](injector)
 	postHandler := do.MustInvoke[*PostHandler](injector)
 	inspectHandler := do.MustInvoke[*InspectHandler](injector)
+	commentHandler := do.MustInvoke[*CommentHandler](injector)
 
 	engine.GET("/", indexHandler.Index)
+	engine.GET("/history", indexHandler.History)
 	engine.GET("/search", indexHandler.ToSearch)
 	engine.GET("/new", indexHandler.ToNew)
-	engine.GET("/s/:id", indexHandler.ToPost)
+	engine.GET("/s/:pid", indexHandler.ToPost)
 	engine.GET("/resetPwd", indexHandler.ToResetPwd)
 	engine.GET("/tags", indexHandler.ToTags)
 	engine.GET("/wait", indexHandler.ToWaitApproved)
+	engine.GET("/comments", indexHandler.ToComments)
+
 	engine.POST("/inspect", inspectHandler.Inspect)
 
 	userGroup := engine.Group("/u")
@@ -32,10 +36,14 @@ func Setup(injector *do.Injector, engine *gin.Engine) {
 	userGroup.GET("/profile/:id", userHandler.ToProfile)
 	userGroup.GET("/invite/:code", userHandler.ToProfile)
 
+	commentGroup := engine.Group("/c")
+	commentGroup.GET("/vote", commentHandler.Vote)
+
 	postGroup := engine.Group("/p")
 	postGroup.POST("/new", postHandler.Add)
 	postGroup.GET("/:pid", postHandler.Detail)
 	postGroup.POST("/comment", postHandler.AddComment)
+	postGroup.GET("/vote", postHandler.Vote)
 }
 
 func provideHandlers(injector *do.Injector) {
@@ -43,6 +51,7 @@ func provideHandlers(injector *do.Injector) {
 	do.Provide(injector, NewUserHandler)
 	do.Provide(injector, NewPostHandler)
 	do.Provide(injector, newInspectHandler)
+	do.Provide(injector, newCommentHandler)
 }
 
 const letterBytes = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"

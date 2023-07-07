@@ -25,27 +25,47 @@ func (i *IndexHandler) Index(c *gin.Context) {
 	var waitApproved int64
 	if userinfo != nil {
 		if userinfo.Role == "admin" || userinfo.Role == "inspector" {
-			i.db.Model(&model.TbPost{}).Where("status = 'WAIT_APPROVE'").Order("created_at desc").Count(&waitApproved)
+			i.db.Model(&model.TbPost{}).Where("status = 'WAIT_APPROVE'").Count(&waitApproved)
 		}
 	}
 
 	var posts []model.TbPost
 	var total int64
-	page := c.Param("p")
+	var totalPage int64
+	size := 25
+	page := c.DefaultQuery("p", "1")
 	pageNumber := cast.ToInt(page)
-	if pageNumber == 0 {
-		pageNumber = 1
-	}
+
 	i.db.Model(&model.TbPost{}).Preload("User").Preload("Tags").
-		Where("created_at >= now() - interval 7 day and status = 'Active'").
-		Offset((pageNumber - 1) * 20).Limit(20).Find(&posts)
+		Where("created_at >= now() - interval 7 day and status = 'Active'").Order("point desc,created_at desc").
+		Offset((pageNumber - 1) * size).Limit(size).Find(&posts)
 	i.db.Model(&model.TbPost{}).Where("created_at >= now() - interval 7 day and status = 'Active'").Count(&total)
+
+	if userinfo != nil {
+		for index, p := range posts[:] {
+			var item model.TbVote
+			if err := i.db.Model(&model.TbVote{}).Where("post_id = ? and user_id = ?", p.ID, userinfo.ID).Limit(1).Find(&item).Error; err == nil {
+				if item.Action == "UP" {
+					posts[index].UpVoted = true
+				} else if item.Action == "DOWN" {
+					posts[index].DownVoted = true
+				}
+			}
+		}
+	}
+	totalPage = total / int64(size)
+	if total%int64(size) > 0 {
+		totalPage = totalPage + 1
+	}
 
 	c.HTML(200, "index.html", OutputCommonSession(c, gin.H{
 		"selected":     "/",
 		"waitApproved": waitApproved,
 		"posts":        posts,
-		"total":        total,
+		"totalPage":    totalPage,
+		"hasNext":      int64(pageNumber) < totalPage,
+		"hasPrev":      int64(pageNumber) > 1,
+		"currentPage":  pageNumber,
 	}))
 }
 
@@ -103,5 +123,72 @@ func (i *IndexHandler) ToWaitApproved(c *gin.Context) {
 		"posts":        waitApprovedList,
 		"waitApproved": len(waitApprovedList),
 		"selected":     "approve",
+	}))
+}
+
+func (i *IndexHandler) History(c *gin.Context) {
+	userinfo := GetCurrentUser(c)
+
+	var posts []model.TbPost
+	var total int64
+	var totalPage int64
+	size := 25
+	page := c.DefaultQuery("p", "1")
+	pageNumber := cast.ToInt(page)
+	i.db.Model(&model.TbPost{}).Preload("User").Preload("Tags").
+		Where("created_at >= now() - interval 7 day and status = 'Active'").Order("created_at desc").
+		Offset((pageNumber - 1) * size).Limit(size).Find(&posts)
+	i.db.Model(&model.TbPost{}).Where("created_at >= now() - interval 7 day and status = 'Active'").Count(&total)
+
+	if userinfo != nil {
+		for index, p := range posts[:] {
+			var item model.TbVote
+			if err := i.db.Model(&model.TbVote{}).Where("post_id = ? and user_id = ?", p.ID, userinfo.ID).Limit(1).Find(&item).Error; err == nil {
+				if item.Action == "UP" {
+					posts[index].UpVoted = true
+				} else if item.Action == "DOWN" {
+					posts[index].DownVoted = true
+				}
+			}
+		}
+	}
+	totalPage = total / int64(size)
+	if total%int64(size) > 0 {
+		totalPage = totalPage + 1
+	}
+
+	c.HTML(200, "index.html", OutputCommonSession(c, gin.H{
+		"selected":    "history",
+		"posts":       posts,
+		"totalPage":   totalPage,
+		"hasNext":     int64(pageNumber) < totalPage,
+		"hasPrev":     int64(pageNumber) > 1,
+		"currentPage": pageNumber,
+	}))
+}
+
+func (i *IndexHandler) ToComments(c *gin.Context) {
+	page := c.DefaultQuery("p", "1")
+	size := 25
+	var comments []model.TbComment
+	var total int64
+	var totalPage int64
+	pageNumber := cast.ToInt(page)
+
+	i.db.Model(model.TbComment{}).Preload("Post").
+		Preload("User").Order("created_at desc").Limit(int(size)).Offset((pageNumber - 1) * size).Find(&comments)
+
+	i.db.Model(model.TbComment{}).Count(&total)
+	totalPage = total / int64(size)
+	if total%int64(size) > 0 {
+		totalPage = totalPage + 1
+	}
+	c.HTML(200, "comments.html", OutputCommonSession(c, gin.H{
+		"selected":    "comment",
+		"comments":    comments,
+		"totalPage":   totalPage,
+		"hasNext":     pageNumber < int(totalPage),
+		"hasPrev":     pageNumber > 1,
+		"currentPage": pageNumber,
 	}))
 }

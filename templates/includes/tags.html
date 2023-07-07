@@ -5,7 +5,7 @@
 {{range $i, $e := .tags}}
 {{if not $e.ParentID}}
 {{if gt $i 0}}</div>{{end}}
-<p class="font-bold text-lg my-4 underline cursor-pointer text-blue-7"
+<p class="font-bold text-lg my-4 underline cursor-pointer text-black"
    style="text-underline-offset: 0.4rem;text-decoration-thickness: 2px;">{{$e.Name}}</p>
 <div class="flex flex-col gap-2 text-gray text-sm ">
     {{else}}

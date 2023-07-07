@@ -16,10 +16,9 @@
             locale: 'cn',
             resizeEnabled: true,
             resizeWidth: false,
+            height:"120px",
+        {{if not $.login}}readOnly:true,{{end}}
             resizeMinHeight:100,
-            {{if not $.login}}
-                 readOnly:true,
-            {{end}}
             plugins: 'plaintext,undo',
             style: 'https://cdn.jsdelivr.net/npm/sceditor@latest/minified/themes/content/default.min.css'
         });
@@ -28,10 +27,15 @@
             textarea.value = sceditor.instance(textarea).fromBBCode(textarea.value)
         })
 
+        $(document.body).delegate(".reply-form","submit",function (){
+            const cid = $(this).data("cid");
+            const commentTextarea = document.getElementById(`comment-${cid}`);
+            commentTextarea.value = sceditor.instance(commentTextarea).fromBBCode(commentTextarea.value)
+        });
+
         $(".reply").click(function () {
             const cid = $(this).data('cid')
             $(this).parents(`#c-${cid}`).find(".form-parent").first().toggle()
-            console.log("cid", cid)
             const commentTextarea = document.getElementById(`comment-${cid}`);
             console.log(commentTextarea)
             const instance = sceditor.instance(commentTextarea)

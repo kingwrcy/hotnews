@@ -1,11 +1,11 @@
 {{define "comment"}}
 <div id="c-{{.Comment.CID}}" class="p2 comment flex flex-row gap2 items-start">
     <div class="flex flex-col items-center cursor-pointer">
-        <div class="text-coolGray hover:text-hover">
+        <a class="text-coolGray {{if .Comment.UpVoted}}text-red{{end}}" href="{{if .Comment.UpVoted}}javascript:void(0);{{else}}/vote?id={{.Comment.CID}}&action=u&type=COMMENT{{end}}" >
             <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24">
                 <path fill="currentColor" d="M1 21h22L12 2"/>
             </svg>
-        </div>
+        </a>
         <div class="text-sm text-coolGray">{{.Comment.UpVote}}</div>
         {{if gt (len .Comment.Comments) 0}}
         <div class="text-gray hover:text-black text-xs toggleComment" data-cid="{{.Comment.CID}}">[-]</div>

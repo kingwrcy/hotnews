@@ -28,11 +28,29 @@ func (p PostHandler) Detail(c *gin.Context) {
 	var posts []model.TbPost
 	p.db.Model(model.TbPost{}).Preload("Comments.User").
 		Preload(clause.Associations).Where("pid = ? ", c.Param("pid")).First(&posts)
+
+	userinfo := GetCurrentUser(c)
+	var uid uint = 0
+	if userinfo != nil {
+		uid = userinfo.ID
+	}
+
 	var rootComments []model.TbComment
 	if len(posts) > 0 {
-		p.db.Model(&model.TbComment{}).Preload("User").Where("post_id = ? and parent_comment_id is null", posts[0].ID).Find(&rootComments)
+		if userinfo != nil {
+			subQuery := p.db.Table("tb_vote").Select("target_id").Where("user_id = ? and type = 'COMMENT' and action ='UP'", uid)
 
-		buildCommentTree(&rootComments, p.db)
+			p.db.Table("tb_comment c").Select("c.*,IF(vote.target_id IS NOT NULL, 1, 0) AS UpVoted").Joins("LEFT JOIN (?) AS vote ON c.id = vote.target_id", subQuery).
+				Preload("User").Where("post_id = ? and parent_comment_id is null", posts[0].ID).Find(&rootComments)
+
+		} else {
+			p.db.Table("tb_comment c").Select("c.*").
+				Preload("User").Where("post_id = ? and parent_comment_id is null", posts[0].ID).
+				Find(&rootComments)
+
+		}
+
+		buildCommentTree(&rootComments, p.db, uid)
 		posts[0].Comments = rootComments
 	}
 	c.HTML(200, "post.html", OutputCommonSession(c, gin.H{
@@ -41,12 +59,19 @@ func (p PostHandler) Detail(c *gin.Context) {
 	}))
 }
 
-func buildCommentTree(comments *[]model.TbComment, db *gorm.DB) {
+func buildCommentTree(comments *[]model.TbComment, db *gorm.DB, uid uint) {
+	subQuery := db.Table("tb_vote").Select("target_id").Where("user_id = ? and type = 'COMMENT' and action ='UP'", uid)
 	for i := range *comments {
 		var children []model.TbComment
-		db.Preload("User").Where("post_id = ? and parent_comment_id = ?", (*comments)[i].PostID, (*comments)[i].ID).Find(&children)
+		if uid > 0 {
+			db.Table("tb_comment c").Select("c.*,IF(vote.target_id IS NOT NULL, 1, 0) AS UpVoted").
+				Joins("LEFT JOIN (?) AS vote ON c.id = vote.target_id", subQuery).Preload("User").Where("post_id = ? and parent_comment_id = ?", (*comments)[i].PostID, (*comments)[i].ID).Find(&children)
+		} else {
+			db.Model(&model.TbComment{}).
+				Joins("LEFT JOIN (?) AS vote ON c.id = vote.target_id", subQuery).Preload("User").Where("post_id = ? and parent_comment_id = ?", (*comments)[i].PostID, (*comments)[i].ID).Find(&children)
+		}
 		(*comments)[i].Comments = children
-		buildCommentTree(&(*comments)[i].Comments, db)
+		buildCommentTree(&(*comments)[i].Comments, db, uid)
 	}
 }
 
@@ -186,53 +211,4 @@ func (p PostHandler) AddComment(c *gin.Context) {
 		return
 	}
 	c.Redirect(302, redirectUrl)
-}
-
-func (p PostHandler) Vote(c *gin.Context) {
-	pid := c.Query("pid")
-	action := c.Query("action")
-	var vote model.TbVote
-	userinfo := GetCurrentUser(c)
-	if userinfo == nil {
-		c.Redirect(302, "/u/login")
-		return
-	}
-
-	var post model.TbPost
-	var exists int64
-	p.db.Model(&model.TbPost{}).Where("pid = ?", pid).First(&post)
-
-	uid := userinfo.ID
-
-	if p.db.Model(&model.TbVote{}).Where("post_id = ? and user_id = ?", post.ID, uid).Count(&exists); exists == 0 {
-		log.Printf("ahhaha")
-		var col string
-		if action == "u" {
-			vote.Action = "UP"
-			col = "upVote"
-		} else {
-			vote.Action = "Down"
-			col = "downVote"
-		}
-		vote.UserID = uid
-		vote.PostID = &post.ID
-		vote.CommentID = nil
-
-		p.db.Transaction(func(tx *gorm.DB) error {
-			if err := tx.Save(&vote).Error; err != nil {
-				return err
-			}
-			if err := tx.Model(&model.TbPost{}).Where("id =?", post.ID).Update(col, gorm.Expr(col+"+1")).Error; err != nil {
-				return err
-			}
-			return nil
-		})
-
-	}
-	refer := c.GetHeader("refer")
-	if refer == "" {
-		refer = "/"
-	}
-
-	c.Redirect(302, refer)
 }

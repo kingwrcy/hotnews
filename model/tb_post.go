@@ -27,8 +27,8 @@ type TbPost struct {
 	CommentCount    int         `gorm:"column:commentCount;type:int"`
 	Comments        []TbComment `gorm:"foreignKey:PostID"`
 	Point           float64     `gorm:"column:point;type:decimal(20,10)"`
-	UpVoted         bool        `gorm:"-:all"`
-	DownVoted       bool        `gorm:"-:all"`
+	UpVoted         int
+	DownVoted       int
 }
 
 func (*TbPost) TableName() string {

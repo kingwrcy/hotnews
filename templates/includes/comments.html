@@ -2,30 +2,40 @@
 
 
 {{define "content"}}
-<div class="flex flex-col gap-2">
+<div class="flex flex-col gap-4">
 
     {{ range .comments}}
-    <div class="flex flex-col flex-1">
-        <div class="flex flex-row gap-2 text-gray text-xs">
-            <div class="text-coolGray  " onclick="upVoteComment(event,'','u')">
-                <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24"><path fill="currentColor" d="M1 21h22L12 2"/></svg>
-            </div>
-            <div class="avatar">
-                <a href="/u/profile/{{.User.Username}}"
-                ><img class="w-5 h-5 rounded" src="https://i.pravatar.cc/30?img=1" alt=""
-                /></a>
-            </div>
-            <div><a class="cursor-pointer  hover:text-hover" href="/u/profile/{{.User.Username}}">{{.User.Username}}</a>
-            </div>
-            <div class="when">{{.CreatedAt | timeAgo}}</div>
-            <div>|</div>
-            <div><a class="hover:text-hover" href="/p/{{.Post.Pid}}/#c-{{.CID}}">链接</a></div>
-            <div>|</div>
-            <a class="hover:text-hover" href="/p/{{.Post.Pid}}">{{.Post.Title}}</a>
+    <div class="flex flex-row gap-2">
+        <div class="flex flex-col items-center">
+            <a class="text-coolGray {{if .UpVoted}}text-red{{end}}" href="{{if .UpVoted}}javascript:void(0);{{else}}/vote?id={{.CID}}&action=u&type=COMMENT{{end}}" >
+                <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24">
+                    <path fill="currentColor" d="M1 21h22L12 2"/>
+                </svg>
+            </a>
+            <div class="text-sm text-coolGray">{{.UpVote}}</div>
         </div>
-        <div class="text-sm content">
-            {{.Content | unEscapeHTML}}
+        <div class="flex flex-col">
+            <div class="flex flex-row gap-2 text-gray text-xs">
+
+                <div class="avatar">
+                    <a href="/u/profile/{{.User.Username}}"
+                    ><img class="w-5 h-5 rounded" src="https://i.pravatar.cc/30?img=1" alt=""
+                    /></a>
+                </div>
+                <div><a class="cursor-pointer  hover:text-hover" href="/u/profile/{{.User.Username}}">{{.User.Username}}</a>
+                </div>
+                <div class="when">{{.CreatedAt | timeAgo}}</div>
+                <div>|</div>
+                <div><a class="hover:text-hover" href="/p/{{.Post.Pid}}/#c-{{.CID}}">链接</a></div>
+                <div>|</div>
+                <a class="hover:text-hover" href="/p/{{.Post.Pid}}">{{.Post.Title}}</a>
+
+            </div>
+            <div class="text-sm content">
+                {{.Content | unEscapeHTML}}
+            </div>
         </div>
+
     </div>
     {{end}}
 </div>

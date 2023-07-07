@@ -2,7 +2,7 @@
 {{range  $index, $post := .posts}}
 <div class="flex flex-row gap-4 mt-2 flex-1 items-start">
     <div class="flex flex-col items-center cursor-pointer upVoteParent ">
-        <a class="text-coolGray  {{if $post.UpVoted}}text-red{{end}}" href="{{if $post.UpVoted}}javascript:void(0);{{else}}/p/vote?pid={{$post.Pid}}&action=u{{end}}" >
+        <a class="text-coolGray  {{if $post.UpVoted}}text-red{{end}}" href="{{if $post.UpVoted}}javascript:void(0);{{else}}/vote?id={{$post.Pid}}&action=u&type=POST{{end}}" >
             <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24"><path fill="currentColor" d="M1 21h22L12 2"/></svg>
         </a>
         <div class="text-sm text-coolGray upVote">{{$post.UpVote}}</div>

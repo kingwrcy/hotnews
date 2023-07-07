@@ -5,6 +5,7 @@ import (
 	"github.com/samber/do"
 	"gorm.io/driver/mysql"
 	"gorm.io/gorm"
+	"gorm.io/gorm/logger"
 )
 
 type AppConfig struct {
@@ -16,7 +17,7 @@ type AppConfig struct {
 func NewRepository(i *do.Injector) (*gorm.DB, error) {
 	appConfig := do.MustInvoke[*AppConfig](i)
 	db, err := gorm.Open(mysql.Open(appConfig.DB), &gorm.Config{
-		//Logger: logger.Default.LogMode(logger.Info),
+		Logger: logger.Default.LogMode(logger.Info),
 	})
 	if err != nil {
 		return nil, err

@@ -17,6 +17,7 @@ type TbComment struct {
 	UpVote          int         `gorm:"column:upVote;type:int"`
 	DownVote        int         `gorm:"column:downVote;type:int"`
 	Comments        []TbComment `gorm:"foreignKey:ParentCommentID"`
+	UpVoted         int
 }
 
 func (*TbComment) TableName() string {

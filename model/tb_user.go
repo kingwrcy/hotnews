@@ -15,8 +15,10 @@ type TbUser struct {
 	PostCount    int    `gorm:"column:postCount;type:int"`
 	Status       string `gorm:"column:status;type:varchar(20)"`
 
-	Posts    []TbPost    `gorm:"foreignKey:UserID"`
-	Comments []TbComment `gorm:"foreignKey:UserID"`
+	Posts           []TbPost    `gorm:"foreignKey:UserID"`
+	UpVotedPosts    []TbPost    `gorm:"many2many:tb_vote;"`
+	Comments        []TbComment `gorm:"foreignKey:UserID"`
+	UpVotedComments []TbComment `gorm:"many2many:tb_vote;"`
 }
 
 func (*TbUser) TableName() string {

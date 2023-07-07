@@ -36,23 +36,27 @@ func (i *IndexHandler) Index(c *gin.Context) {
 	page := c.DefaultQuery("p", "1")
 	pageNumber := cast.ToInt(page)
 
-	i.db.Model(&model.TbPost{}).Preload("User").Preload("Tags").
-		Where("created_at >= now() - interval 7 day and status = 'Active'").Order("point desc,created_at desc").
+	subQuery := i.db.Table("tb_vote").Select("target_id").Where("user_id = ? and type = 'POST' and action ='UP'", userinfo.ID)
+
+	i.db.Table("tb_post p").Select("p.*,IF(vote.target_id IS NOT NULL, 1, 0) AS UpVoted").
+		Joins("LEFT JOIN (?) AS vote ON p.id = vote.target_id", subQuery).Preload("User").Preload("Tags").
+		Where("created_at >= now() - interval 7 day and status = 'Active'").
+		Order("point desc,created_at desc").
 		Offset((pageNumber - 1) * size).Limit(size).Find(&posts)
 	i.db.Model(&model.TbPost{}).Where("created_at >= now() - interval 7 day and status = 'Active'").Count(&total)
 
-	if userinfo != nil {
-		for index, p := range posts[:] {
-			var item model.TbVote
-			if err := i.db.Model(&model.TbVote{}).Where("post_id = ? and user_id = ?", p.ID, userinfo.ID).Limit(1).Find(&item).Error; err == nil {
-				if item.Action == "UP" {
-					posts[index].UpVoted = true
-				} else if item.Action == "DOWN" {
-					posts[index].DownVoted = true
-				}
-			}
-		}
-	}
+	//if userinfo != nil {
+	//	for index, p := range posts[:] {
+	//		var item model.TbVote
+	//		if err := i.db.Model(&model.TbVote{}).Where("post_id = ? and user_id = ?", p.ID, userinfo.ID).Limit(1).Find(&item).Error; err == nil {
+	//			if item.Action == "UP" {
+	//				posts[index].UpVoted = true
+	//			} else if item.Action == "DOWN" {
+	//				posts[index].DownVoted = true
+	//			}
+	//		}
+	//	}
+	//}
 	totalPage = total / int64(size)
 	if total%int64(size) > 0 {
 		totalPage = totalPage + 1
@@ -135,23 +139,22 @@ func (i *IndexHandler) History(c *gin.Context) {
 	size := 25
 	page := c.DefaultQuery("p", "1")
 	pageNumber := cast.ToInt(page)
-	i.db.Model(&model.TbPost{}).Preload("User").Preload("Tags").
-		Where("created_at >= now() - interval 7 day and status = 'Active'").Order("created_at desc").
-		Offset((pageNumber - 1) * size).Limit(size).Find(&posts)
+
 	i.db.Model(&model.TbPost{}).Where("created_at >= now() - interval 7 day and status = 'Active'").Count(&total)
 
 	if userinfo != nil {
-		for index, p := range posts[:] {
-			var item model.TbVote
-			if err := i.db.Model(&model.TbVote{}).Where("post_id = ? and user_id = ?", p.ID, userinfo.ID).Limit(1).Find(&item).Error; err == nil {
-				if item.Action == "UP" {
-					posts[index].UpVoted = true
-				} else if item.Action == "DOWN" {
-					posts[index].DownVoted = true
-				}
-			}
-		}
+		subQuery := i.db.Table("tb_vote").Select("target_id").Where("user_id = ? and type = 'POST' and action ='UP'", userinfo.ID)
+
+		i.db.Table("tb_post p").Select("p.*,IF(vote.target_id IS NOT NULL, 1, 0) AS UpVoted").
+			Joins("LEFT JOIN (?) AS vote ON p.id = vote.target_id", subQuery).Preload("User").Preload("Tags").
+			Where("created_at >= now() - interval 7 day and status = 'Active'").Order("created_at desc").
+			Offset((pageNumber - 1) * size).Limit(size).Find(&posts)
+	} else {
+		i.db.Model(&model.TbPost{}).Preload("User").Preload("Tags").
+			Where("created_at >= now() - interval 7 day and status = 'Active'").Order("created_at desc").
+			Offset((pageNumber - 1) * size).Limit(size).Find(&posts)
 	}
+
 	totalPage = total / int64(size)
 	if total%int64(size) > 0 {
 		totalPage = totalPage + 1
@@ -174,9 +177,17 @@ func (i *IndexHandler) ToComments(c *gin.Context) {
 	var total int64
 	var totalPage int64
 	pageNumber := cast.ToInt(page)
+	userinfo := GetCurrentUser(c)
 
-	i.db.Model(model.TbComment{}).Preload("Post").
-		Preload("User").Order("created_at desc").Limit(int(size)).Offset((pageNumber - 1) * size).Find(&comments)
+	if userinfo != nil {
+		subQuery := i.db.Table("tb_vote").Select("target_id").Where("user_id = ? and type = 'COMMENT' and action ='UP'", userinfo.ID)
+
+		i.db.Table("tb_comment c").Select("c.*,IF(vote.target_id IS NOT NULL, 1, 0) AS UpVoted").Joins("LEFT JOIN (?) AS vote ON c.id = vote.target_id", subQuery).Preload("Post").
+			Preload("User").Order("created_at desc").Limit(int(size)).Offset((pageNumber - 1) * size).Find(&comments)
+	} else {
+		i.db.Model(model.TbComment{}).Preload("Post").
+			Preload("User").Order("created_at desc").Limit(int(size)).Offset((pageNumber - 1) * size).Find(&comments)
+	}
 
 	i.db.Model(model.TbComment{}).Count(&total)
 	totalPage = total / int64(size)
@@ -191,4 +202,66 @@ func (i *IndexHandler) ToComments(c *gin.Context) {
 		"hasPrev":     pageNumber > 1,
 		"currentPage": pageNumber,
 	}))
+}
+
+func (i *IndexHandler) Vote(c *gin.Context) {
+	id := c.Query("id")
+	action := c.Query("action")
+	targetType := c.Query("type")
+	var vote model.TbVote
+	userinfo := GetCurrentUser(c)
+	if userinfo == nil {
+		c.Redirect(302, "/u/login")
+		return
+	}
+	var exists int64
+	var targetID uint
+	if targetType == "POST" {
+		var item model.TbPost
+		i.db.Model(&model.TbPost{}).Where("pid = ?", id).First(&item)
+		targetID = item.ID
+	} else if targetType == "COMMENT" {
+		var item model.TbComment
+		i.db.Model(&model.TbComment{}).Where("cid = ?", id).First(&item)
+		targetID = item.ID
+	}
+
+	uid := userinfo.ID
+
+	if i.db.Model(&model.TbVote{}).Where("target_id = ? and user_id = ?  and type = ?", targetID, uid, targetType).Count(&exists); exists == 0 {
+		var col string
+		if action == "u" {
+			vote.Action = "UP"
+			col = "upVote"
+		} else {
+			vote.Action = "Down"
+			col = "downVote"
+		}
+		vote.UserID = uid
+		vote.TargetID = targetID
+		vote.Type = targetType
+
+		i.db.Transaction(func(tx *gorm.DB) error {
+			if err := tx.Save(&vote).Error; err != nil {
+				return err
+			}
+			if targetType == "POST" {
+				if err := tx.Model(&model.TbPost{}).Where("id =?", targetID).Update(col, gorm.Expr(col+"+1")).Error; err != nil {
+					return err
+				}
+			} else if targetType == "COMMENT" {
+				if err := tx.Model(&model.TbComment{}).Where("id =?", targetID).Update(col, gorm.Expr(col+"+1")).Error; err != nil {
+					return err
+				}
+			}
+			return nil
+		})
+
+	}
+	refer := c.GetHeader("Referer")
+	if refer == "" {
+		refer = "/"
+	}
+
+	c.Redirect(302, refer)
 }

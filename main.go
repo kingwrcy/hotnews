@@ -47,7 +47,7 @@ func main() {
 
 	db := do.MustInvoke[*gorm.DB](injector)
 	config := do.MustInvoke[*provider.AppConfig](injector)
-	err := db.AutoMigrate(&model.TbUser{}, &model.TbInviteRecord{}, &model.TbPost{}, &model.TbInspectLog{}, &model.TbComment{}, &model.TbVote{})
+	err := db.AutoMigrate(&model.TbUser{}, &model.TbInviteRecord{}, &model.TbPost{}, &model.TbInspectLog{}, &model.TbComment{}, model.TbVote{})
 	if err != nil {
 		log.Printf("升级数据库异常,启动失败.%s", err)
 		return

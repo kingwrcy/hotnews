@@ -15,7 +15,7 @@ func Setup(injector *do.Injector, engine *gin.Engine) {
 	indexHandler := do.MustInvoke[*IndexHandler](injector)
 	postHandler := do.MustInvoke[*PostHandler](injector)
 	inspectHandler := do.MustInvoke[*InspectHandler](injector)
-	commentHandler := do.MustInvoke[*CommentHandler](injector)
+	_ = do.MustInvoke[*CommentHandler](injector)
 
 	engine.GET("/", indexHandler.Index)
 	engine.GET("/history", indexHandler.History)
@@ -26,6 +26,7 @@ func Setup(injector *do.Injector, engine *gin.Engine) {
 	engine.GET("/tags", indexHandler.ToTags)
 	engine.GET("/wait", indexHandler.ToWaitApproved)
 	engine.GET("/comments", indexHandler.ToComments)
+	engine.GET("/vote", indexHandler.Vote)
 
 	engine.POST("/inspect", inspectHandler.Inspect)
 
@@ -36,14 +37,14 @@ func Setup(injector *do.Injector, engine *gin.Engine) {
 	userGroup.GET("/profile/:id", userHandler.ToProfile)
 	userGroup.GET("/invite/:code", userHandler.ToProfile)
 
-	commentGroup := engine.Group("/c")
-	commentGroup.GET("/vote", commentHandler.Vote)
+	//commentGroup := engine.Group("/c")
+	//commentGroup.GET("/vote", commentHandler.Vote)
 
 	postGroup := engine.Group("/p")
 	postGroup.POST("/new", postHandler.Add)
 	postGroup.GET("/:pid", postHandler.Detail)
 	postGroup.POST("/comment", postHandler.AddComment)
-	postGroup.GET("/vote", postHandler.Vote)
+
 }
 
 func provideHandlers(injector *do.Injector) {

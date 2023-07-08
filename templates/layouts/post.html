@@ -20,15 +20,15 @@
             <div class="flex flex-row gap-1 items-center text-xs">
                 {{range $post.Tags}}
                 <div class=" text-gray border px-1.5 rounded bg-gray-2 b-solid b-coolGray hover:bg-gray-1 cursor-pointer ">
-                    {{.Name}}</div>
+                    <a href="/t/{{.Name}}">{{.Name}}</a></div>
                 {{end}}
                 {{ if eq $post.Type "ask"}}
                 <div class=" border px-1.5 rounded bg-gray-2 b-solid  cursor-pointer ask bg-red text-white">
-                    <a href="/" >讨论</a>
+                    <a href="/t/type/ask" >讨论</a>
                 </div>
                 {{end}}
                 <div class="text-gray ">
-                    <a href="/" class="hover:text-hover">{{$post.Domain}}</a>
+                    <a href="/d/{{$post.Domain}}" class="hover:text-hover">{{$post.Domain}}</a>
                 </div>
             </div>
         </div>

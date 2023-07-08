@@ -19,7 +19,6 @@ type TbUser struct {
 	UpVotedPosts    []TbPost    `gorm:"many2many:tb_vote;"`
 	Comments        []TbComment `gorm:"foreignKey:UserID"`
 	UpVotedComments []TbComment `gorm:"many2many:tb_vote;"`
-	Inviter         *TbUser
 }
 
 func (*TbUser) TableName() string {

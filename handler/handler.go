@@ -28,6 +28,7 @@ func Setup(injector *do.Injector, engine *gin.Engine) {
 	engine.GET("/comments", indexHandler.ToComments)
 	engine.GET("/vote", indexHandler.Vote)
 	engine.GET("/moderations", indexHandler.Moderation)
+	engine.GET("/d/:domainName", indexHandler.SearchByDomain)
 
 	engine.POST("/inspect", inspectHandler.Inspect)
 
@@ -45,6 +46,10 @@ func Setup(injector *do.Injector, engine *gin.Engine) {
 	postGroup.POST("/new", postHandler.Add)
 	postGroup.GET("/:pid", postHandler.Detail)
 	postGroup.POST("/comment", postHandler.AddComment)
+
+	tagGroup := engine.Group("/t")
+	tagGroup.GET("/type/:type", postHandler.SearchByType)
+	tagGroup.GET("/:tag", postHandler.SearchByTag)
 
 }
 

@@ -102,9 +102,13 @@ func (u *UserHandler) ToProfile(c *gin.Context) {
 		}))
 		return
 	}
+
+	var inviteRecord model.TbInviteRecord
+	u.db.Where("invitedUsername = ?", user.Username).First(&inviteRecord)
 	c.HTML(200, "profile.html", OutputCommonSession(c, gin.H{
-		"selected": "mine",
-		"user":     user,
+		"selected":     "mine",
+		"user":         user,
+		"inviteRecord": inviteRecord,
 	}))
 }
 func (u *UserHandler) DoInvited(c *gin.Context) {

@@ -5,6 +5,7 @@ import (
 	"github.com/kingwrcy/hn/model"
 	"github.com/kingwrcy/hn/vo"
 	"github.com/samber/do"
+	"github.com/spf13/cast"
 	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
 	"log"
@@ -116,15 +117,15 @@ func (p PostHandler) Add(c *gin.Context) {
 	var user model.TbUser
 
 	p.db.Model(model.TbUser{}).Where("id=?", uid).First(&user)
-	status := "WAIT_APPROVE"
-	if request.Type == "ask" {
-		status = "Active"
-	}
+	status := "Active"
 
 	host := ""
 	if request.Type == "link" {
 		urlParsed, _ := url.Parse(request.Link)
 		host = urlParsed.Host
+		if strings.HasPrefix(host, "www") {
+			_, host, _ = strings.Cut(host, "www")
+		}
 	}
 
 	post := model.TbPost{
@@ -158,14 +159,7 @@ func (p PostHandler) Add(c *gin.Context) {
 		}))
 		return
 	}
-	if request.Type == "ask" {
-		c.Redirect(302, "/p/"+post.Pid)
-		return
-	}
-	c.HTML(200, "new.html", OutputCommonSession(c, gin.H{
-		"msg":      "提交成功,等待审核",
-		"selected": "new",
-	}))
+	c.Redirect(302, "/p/"+post.Pid)
 	return
 }
 
@@ -211,4 +205,97 @@ func (p PostHandler) AddComment(c *gin.Context) {
 		return
 	}
 	c.Redirect(302, redirectUrl)
+}
+
+func (p PostHandler) SearchByTag(c *gin.Context) {
+	userinfo := GetCurrentUser(c)
+
+	var posts []model.TbPost
+	var total int64
+	var totalPage int64
+	size := 25
+	page := c.DefaultQuery("p", "1")
+	pageNumber := cast.ToInt(page)
+
+	tagName := c.Param("tag")
+
+	if userinfo != nil {
+		subQuery := p.db.Table("tb_vote").Select("target_id").Where("user_id = ? and type = 'POST' and action ='UP'", userinfo.ID)
+
+		p.db.Table("tb_post p").Select("p.*,IF(vote.target_id IS NOT NULL, 1, 0) AS UpVoted").
+			Joins("LEFT JOIN (?) AS vote ON p.id = vote.target_id", subQuery).
+			InnerJoins(",tb_post_tag pt,tb_tag t").
+			Preload("User").Preload("Tags").
+			Where("status = 'Active' and t.id = pt.tb_tag_id and pt.tb_post_id = p.id and t.name = ?", tagName).
+			Order("created_at desc").
+			Offset((pageNumber - 1) * size).Limit(size).Find(&posts)
+	} else {
+		p.db.Table("tb_post p").Preload("User").Preload("Tags").
+			InnerJoins(",tb_post_tag pt,tb_tag t").
+			Preload("User").Preload("Tags").
+			Where("status = 'Active' and t.id = pt.tb_tag_id and pt.tb_post_id = p.id and t.name = ?", tagName).
+			Order("created_at desc").
+			Offset((pageNumber - 1) * size).Limit(size).Find(&posts)
+	}
+	p.db.Table("tb_post p").InnerJoins(",tb_post_tag pt,tb_tag t").
+		Where("status = 'Active' and t.id = pt.tb_tag_id and pt.tb_post_id = p.id and t.name = ?", tagName).
+		Count(&total)
+
+	totalPage = total / int64(size)
+	if total%int64(size) > 0 {
+		totalPage = totalPage + 1
+	}
+
+	c.HTML(200, "index.html", OutputCommonSession(c, gin.H{
+		"posts":       posts,
+		"totalPage":   totalPage,
+		"hasNext":     int64(pageNumber) < totalPage,
+		"hasPrev":     int64(pageNumber) > 1,
+		"currentPage": pageNumber,
+	}))
+}
+func (p PostHandler) SearchByType(c *gin.Context) {
+	userinfo := GetCurrentUser(c)
+
+	var posts []model.TbPost
+	var total int64
+	var totalPage int64
+	size := 25
+	page := c.DefaultQuery("p", "1")
+	pageNumber := cast.ToInt(page)
+
+	typeName := c.Param("type")
+
+	if userinfo != nil {
+		subQuery := p.db.Table("tb_vote").Select("target_id").Where("user_id = ? and type = 'POST' and action ='UP'", userinfo.ID)
+
+		p.db.Table("tb_post p").Select("p.*,IF(vote.target_id IS NOT NULL, 1, 0) AS UpVoted").
+			Joins("LEFT JOIN (?) AS vote ON p.id = vote.target_id", subQuery).
+			Preload("User").Preload("Tags").
+			Where("status = 'Active' and type = ? ", typeName).
+			Order("created_at desc").
+			Offset((pageNumber - 1) * size).Limit(size).Find(&posts)
+	} else {
+		p.db.Table("tb_post p").Preload("User").Preload("Tags").
+			Preload("User").Preload("Tags").
+			Where("status = 'Active' and type = ? ", typeName).
+			Order("created_at desc").
+			Offset((pageNumber - 1) * size).Limit(size).Find(&posts)
+	}
+	p.db.Model(&model.TbPost{}).InnerJoins(",tb_post_tag pt,tb_tag t").
+		Where("status = 'Active' and type = ? ", typeName).
+		Count(&total)
+
+	totalPage = total / int64(size)
+	if total%int64(size) > 0 {
+		totalPage = totalPage + 1
+	}
+
+	c.HTML(200, "index.html", OutputCommonSession(c, gin.H{
+		"posts":       posts,
+		"totalPage":   totalPage,
+		"hasNext":     int64(pageNumber) < totalPage,
+		"hasPrev":     int64(pageNumber) > 1,
+		"currentPage": pageNumber,
+	}))
 }

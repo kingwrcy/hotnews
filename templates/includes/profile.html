@@ -15,17 +15,17 @@
 
     <div class="flex flex-row gap-8 items-center text-sm">
         <div class="font-bold">加入时间</div>
-        <div>{{.user.CreatedAt.Format "2006-01-02"}}  通过  <a href="/" class="aLink">admin</a> 的 <a href="/" class="aLink">邀请</a> 加入</div>
+        <div>{{.user.CreatedAt.Format "2006-01-02"}}{{if .inviteRecord.Username }}  通过  <a href="/u/{{.inviteRecord.Username}}" class="aLink">{{.inviteRecord.Username}}</a> 的 <a href="/" class="aLink">邀请</a> 加入{{end}}</div>
     </div>
 
     <div class="flex flex-row gap-8 items-center text-sm">
         <div class="font-bold">提交链接</div>
-        <div><a href="/" class="aLink">389</a></div>
+        <div><a href="/" class="aLink">{{len .user.Posts}}</a></div>
     </div>
 
     <div class="flex flex-row gap-8 items-center text-sm">
         <div class="font-bold">发表评论</div>
-        <div><a href="/" class="aLink">23</a></div>
+        <div><a href="/" class="aLink">{{len .user.Comments}}</a></div>
     </div>
 
     <div class="flex flex-row gap-8 items-center text-sm">
@@ -35,7 +35,7 @@
 
     <div class="flex flex-row gap-8 items-center text-sm">
         <div class="font-bold">个人介绍</div>
-        <div>我是程序员，我爱写代码！</div>
+        <div>{{.user.Bio}}</div>
     </div>
 </div>
 {{end}}

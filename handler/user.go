@@ -8,6 +8,7 @@ import (
 	"github.com/samber/do"
 	"golang.org/x/crypto/bcrypt"
 	"gorm.io/gorm"
+	"gorm.io/gorm/clause"
 	"log"
 	"time"
 )
@@ -92,8 +93,18 @@ func (u *UserHandler) Logout(c *gin.Context) {
 	c.Redirect(302, "/")
 }
 func (u *UserHandler) ToProfile(c *gin.Context) {
+	username := c.Param("username")
+	var user model.TbUser
+	if err := u.db.Preload(clause.Associations).Where("username= ?", username).First(&user).Error; err == gorm.ErrRecordNotFound {
+		c.HTML(200, "profile.html", OutputCommonSession(c, gin.H{
+			"selected": "mine",
+			"msg":      "如果用户确定存在,可能他改名字了.",
+		}))
+		return
+	}
 	c.HTML(200, "profile.html", OutputCommonSession(c, gin.H{
 		"selected": "mine",
+		"user":     user,
 	}))
 }
 func (u *UserHandler) DoInvited(c *gin.Context) {

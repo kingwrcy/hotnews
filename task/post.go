@@ -4,6 +4,7 @@ import (
 	"github.com/jasonlvhit/gocron"
 	"github.com/kingwrcy/hn/model"
 	"github.com/samber/do"
+	"github.com/spf13/cast"
 	"gorm.io/gorm"
 	"log"
 	"math"
@@ -20,11 +21,12 @@ func StartPostTask(i *do.Injector) {
 		db.Model(&model.TbPost{}).Where("created_at >= now() - interval 7 day and status = 'Active'").Scan(&posts)
 		g := 1.80
 		for _, post := range posts {
-			p := float64(post.UpVote - 1)
-			if p < 0 {
-				p = 0
-			}
+			var commentCount int64
+			db.Model(&model.TbComment{}).Where("post_id = ? and user_id != ?", post.ID, post.UserID).Count(&commentCount)
+
+			p := float64(post.UpVote)*1.5 + cast.ToFloat64(commentCount)*1.2
 			t := time.Now().Sub(post.CreatedAt).Hours()
+
 			point := p / math.Pow(t+2, g)
 
 			db.Model(&model.TbPost{}).Where("id= ?", post.ID).Update("point", point)

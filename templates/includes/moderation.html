@@ -1,0 +1,90 @@
+{{ define "title"}}<title>审核日志</title>
+<style>
+    table.blueTable {
+
+        border-collapse: collapse;
+    }
+
+    table.blueTable td, table.blueTable th {
+        border:1px solid #ccc;
+    }
+
+    table.blueTable tbody td {
+        padding:5px 10px;
+        text-align: left;
+    }
+
+    table.blueTable tr:nth-child(even) {
+        background: #D0E4F5;
+    }
+
+    table.blueTable thead {
+
+    }
+
+    table.blueTable thead th {
+        padding:10px;
+        text-align: left;
+    }
+
+    table.blueTable thead th:first-child {
+    }
+
+    table.blueTable tfoot {
+
+    }
+
+    table.blueTable tfoot td {
+
+    }
+
+    table.blueTable tfoot .links {
+    }
+
+    table.blueTable tfoot .links a {
+
+    }
+</style>{{ end }}
+
+
+{{define "content"}}
+<table class="blueTable text-sm w-full" >
+    <thead>
+    <tr>
+        <th>发生时间</th>
+        <th>管理员</th>
+        <th>详情</th>
+        <th>原因</th>
+    </tr>
+    </thead>
+
+    <tbody>
+    {{range .logs}}
+    <tr>
+        <td style="width: 160px;">{{.CreatedAt.Format "2006-01-02 15:04:05"}}</td>
+        <td style="width: 100px;"><a class="text-blue" href="/u/{{.Inspector.Username}}">{{.Inspector.Username}}</a></td>
+        </td>
+        <td>
+            <div class="flex flex-col gap-2 items-start p-2">
+                <div>{{if eq .InspectType "POST"}}<a class="text-blue" href="/p/{{.Post.Pid}}">帖子:{{.Post.Title}}</a>{{end}}</div>
+                <div>动作:{{.Action}}</div>
+            </div>
+
+
+            </td>
+        <td>{{.Reason}}</td>
+    </tr>
+    {{end}}
+
+    </tbody>
+
+</table>
+<div class="flex flex-row gap2 items-center text-gray text-xs mt-4">
+    {{ if .hasPrev}}
+    <a href="?p={{sub .currentPage 1}}" class="hover:text-hover"><< 上一页</a>
+    {{end}}
+    {{ if .hasNext}}
+    <a href="?p={{add .currentPage 1}}" class="hover:text-hover">下一页>></a>
+    {{end}}
+</div>
+{{end}}

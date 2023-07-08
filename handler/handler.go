@@ -27,6 +27,7 @@ func Setup(injector *do.Injector, engine *gin.Engine) {
 	engine.GET("/wait", indexHandler.ToWaitApproved)
 	engine.GET("/comments", indexHandler.ToComments)
 	engine.GET("/vote", indexHandler.Vote)
+	engine.GET("/moderations", indexHandler.Moderation)
 
 	engine.POST("/inspect", inspectHandler.Inspect)
 
@@ -34,7 +35,7 @@ func Setup(injector *do.Injector, engine *gin.Engine) {
 	userGroup.POST("/login", userHandler.Login)
 	userGroup.GET("/login", userHandler.ToLogin)
 	userGroup.GET("/logout", userHandler.Logout)
-	userGroup.GET("/profile/:id", userHandler.ToProfile)
+	userGroup.GET("/profile/:username", userHandler.ToProfile)
 	userGroup.GET("/invite/:code", userHandler.ToProfile)
 
 	//commentGroup := engine.Group("/c")

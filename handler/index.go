@@ -36,27 +36,22 @@ func (i *IndexHandler) Index(c *gin.Context) {
 	page := c.DefaultQuery("p", "1")
 	pageNumber := cast.ToInt(page)
 
-	subQuery := i.db.Table("tb_vote").Select("target_id").Where("user_id = ? and type = 'POST' and action ='UP'", userinfo.ID)
+	if userinfo != nil {
+		subQuery := i.db.Table("tb_vote").Select("target_id").Where("user_id = ? and type = 'POST' and action ='UP'", userinfo.ID)
 
-	i.db.Table("tb_post p").Select("p.*,IF(vote.target_id IS NOT NULL, 1, 0) AS UpVoted").
-		Joins("LEFT JOIN (?) AS vote ON p.id = vote.target_id", subQuery).Preload("User").Preload("Tags").
-		Where("created_at >= now() - interval 7 day and status = 'Active'").
-		Order("point desc,created_at desc").
-		Offset((pageNumber - 1) * size).Limit(size).Find(&posts)
+		i.db.Table("tb_post p").Select("p.*,IF(vote.target_id IS NOT NULL, 1, 0) AS UpVoted").
+			Joins("LEFT JOIN (?) AS vote ON p.id = vote.target_id", subQuery).Preload("User").Preload("Tags").
+			Where("created_at >= now() - interval 7 day and status = 'Active'").
+			Order("point desc,created_at desc").
+			Offset((pageNumber - 1) * size).Limit(size).Find(&posts)
+	} else {
+		i.db.Model(&model.TbPost{}).Preload("User").Preload("Tags").
+			Where("created_at >= now() - interval 7 day and status = 'Active'").
+			Order("point desc,created_at desc").
+			Offset((pageNumber - 1) * size).Limit(size).Find(&posts)
+	}
 	i.db.Model(&model.TbPost{}).Where("created_at >= now() - interval 7 day and status = 'Active'").Count(&total)
 
-	//if userinfo != nil {
-	//	for index, p := range posts[:] {
-	//		var item model.TbVote
-	//		if err := i.db.Model(&model.TbVote{}).Where("post_id = ? and user_id = ?", p.ID, userinfo.ID).Limit(1).Find(&item).Error; err == nil {
-	//			if item.Action == "UP" {
-	//				posts[index].UpVoted = true
-	//			} else if item.Action == "DOWN" {
-	//				posts[index].DownVoted = true
-	//			}
-	//		}
-	//	}
-	//}
 	totalPage = total / int64(size)
 	if total%int64(size) > 0 {
 		totalPage = totalPage + 1
@@ -214,19 +209,33 @@ func (i *IndexHandler) Vote(c *gin.Context) {
 		c.Redirect(302, "/u/login")
 		return
 	}
+
+	refer := c.GetHeader("Referer")
+	if refer == "" {
+		refer = "/"
+	}
+
+	uid := userinfo.ID
+
 	var exists int64
 	var targetID uint
 	if targetType == "POST" {
 		var item model.TbPost
 		i.db.Model(&model.TbPost{}).Where("pid = ?", id).First(&item)
 		targetID = item.ID
+		if item.UserID == uid {
+			c.Redirect(302, refer)
+			return
+		}
 	} else if targetType == "COMMENT" {
 		var item model.TbComment
 		i.db.Model(&model.TbComment{}).Where("cid = ?", id).First(&item)
 		targetID = item.ID
+		if item.UserID == uid {
+			c.Redirect(302, refer)
+			return
+		}
 	}
-
-	uid := userinfo.ID
 
 	if i.db.Model(&model.TbVote{}).Where("target_id = ? and user_id = ?  and type = ?", targetID, uid, targetType).Count(&exists); exists == 0 {
 		var col string
@@ -258,10 +267,30 @@ func (i *IndexHandler) Vote(c *gin.Context) {
 		})
 
 	}
-	refer := c.GetHeader("Referer")
-	if refer == "" {
-		refer = "/"
-	}
 
 	c.Redirect(302, refer)
+}
+
+func (i *IndexHandler) Moderation(c *gin.Context) {
+	page := c.DefaultQuery("p", "1")
+	size := 25
+	var logs []model.TbInspectLog
+	var total int64
+	var totalPage int64
+	pageNumber := cast.ToInt(page)
+
+	i.db.Model(&model.TbInspectLog{}).Preload("Inspector").Preload("Post").Limit(size).Offset((pageNumber - 1) * size).Find(&logs)
+	i.db.Model(&model.TbInspectLog{}).Count(&total)
+
+	totalPage = total / int64(size)
+	if total%int64(size) > 0 {
+		totalPage = totalPage + 1
+	}
+	c.HTML(200, "moderation.html", OutputCommonSession(c, gin.H{
+		"logs":        logs,
+		"totalPage":   totalPage,
+		"hasNext":     pageNumber < int(totalPage),
+		"hasPrev":     pageNumber > 1,
+		"currentPage": pageNumber,
+	}))
 }

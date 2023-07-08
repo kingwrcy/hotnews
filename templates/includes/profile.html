@@ -10,12 +10,12 @@
 
     <div class="flex flex-row gap-8 items-center text-sm">
         <div class="font-bold ">账号状态</div>
-        <div>正常</div>
+        <div>{{.user.Status}}</div>
     </div>
 
     <div class="flex flex-row gap-8 items-center text-sm">
         <div class="font-bold">加入时间</div>
-        <div>2023-06-30  <a href="/" class="aLink">admin</a> 通过 <a href="/" class="aLink">邀请</a> 加入</div>
+        <div>{{.user.CreatedAt.Format "2006-01-02"}}  通过  <a href="/" class="aLink">admin</a> 的 <a href="/" class="aLink">邀请</a> 加入</div>
     </div>
 
     <div class="flex flex-row gap-8 items-center text-sm">

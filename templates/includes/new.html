@@ -83,14 +83,14 @@
             <label for="tag" class="font-bold">标签</label>
             <select id="tag" multiple class="selectBox  input flex-1" name="tagIDs[]">
 
-                {{range $i, $e := .tags}}
-                {{if not $e.ParentID}}
-                {{if gt $i 0}}</optgroup>{{end}}
-                <optgroup label="{{$e.Name}}">
-                    {{else}}
-                    <option value="{{$e.ID}}">{{$e.Name}}</option>
+                {{range .tags}}
+
+                <optgroup label="{{.Name}}">
+                    {{range  .Children}}
+                    <option value="{{.ID}}">{{.Name}}</option>
                     {{end}}
-                    {{end}}
+                </optgroup>
+                {{end}}
 
             </select>
         </div>

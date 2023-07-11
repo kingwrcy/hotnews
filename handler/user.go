@@ -95,7 +95,8 @@ func (u *UserHandler) Logout(c *gin.Context) {
 func (u *UserHandler) ToProfile(c *gin.Context) {
 	username := c.Param("username")
 	var user model.TbUser
-	if err := u.db.Preload(clause.Associations).Where("username= ?", username).First(&user).Error; err == gorm.ErrRecordNotFound {
+	if err := u.db.Preload(clause.Associations).
+		Where("username= ?", username).First(&user).Error; err == gorm.ErrRecordNotFound {
 		c.HTML(200, "profile.html", OutputCommonSession(c, gin.H{
 			"selected": "mine",
 			"msg":      "如果用户确定存在,可能他改名字了.",
@@ -111,6 +112,63 @@ func (u *UserHandler) ToProfile(c *gin.Context) {
 		"inviteRecord": inviteRecord,
 	}))
 }
+
+func (u *UserHandler) Links(c *gin.Context) {
+	username := c.Param("username")
+	var user model.TbUser
+	if err := u.db.Preload(clause.Associations).Where("username= ?", username).First(&user).Error; err == gorm.ErrRecordNotFound {
+		c.HTML(200, "profile.html", OutputCommonSession(c, gin.H{
+			"selected": "mine",
+			"msg":      "如果用户确定存在,可能他改名字了.",
+		}))
+		return
+	}
+
+	var inviteRecord model.TbInviteRecord
+	u.db.Where("invitedUsername = ?", user.Username).First(&inviteRecord)
+
+	var posts []model.TbPost
+	u.db.Model(&model.TbPost{}).Preload(clause.Associations).
+		Where("user_id = ? and status ='Active'", user.ID).
+		Order("created_at desc").
+		Find(&posts)
+
+	c.HTML(200, "profile.html", OutputCommonSession(c, gin.H{
+		"selected":     "mine",
+		"user":         user,
+		"posts":        posts,
+		"inviteRecord": inviteRecord,
+	}))
+}
+
+func (u *UserHandler) Comments(c *gin.Context) {
+	username := c.Param("username")
+	var user model.TbUser
+	if err := u.db.Preload(clause.Associations).Where("username= ?", username).First(&user).Error; err == gorm.ErrRecordNotFound {
+		c.HTML(200, "profile.html", OutputCommonSession(c, gin.H{
+			"selected": "mine",
+			"msg":      "如果用户确定存在,可能他改名字了.",
+		}))
+		return
+	}
+
+	var inviteRecord model.TbInviteRecord
+	u.db.Where("invitedUsername = ?", user.Username).First(&inviteRecord)
+
+	var comments []model.TbComment
+	u.db.Model(&model.TbComment{}).
+		Where("user_id = ? ", user.ID).
+		Order("created_at desc").
+		Find(&comments)
+
+	c.HTML(200, "profile.html", OutputCommonSession(c, gin.H{
+		"selected":     "mine",
+		"user":         user,
+		"comments":     comments,
+		"inviteRecord": inviteRecord,
+	}))
+}
+
 func (u *UserHandler) DoInvited(c *gin.Context) {
 	code := c.Param("code")
 	if code == "" {

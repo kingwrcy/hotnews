@@ -29,6 +29,7 @@ func Setup(injector *do.Injector, engine *gin.Engine) {
 	engine.GET("/vote", indexHandler.Vote)
 	engine.GET("/moderations", indexHandler.Moderation)
 	engine.GET("/d/:domainName", indexHandler.SearchByDomain)
+	engine.POST("/search", indexHandler.DoSearch)
 
 	engine.POST("/inspect", inspectHandler.Inspect)
 
@@ -38,6 +39,8 @@ func Setup(injector *do.Injector, engine *gin.Engine) {
 	userGroup.GET("/logout", userHandler.Logout)
 	userGroup.GET("/profile/:username", userHandler.ToProfile)
 	userGroup.GET("/invite/:code", userHandler.ToProfile)
+	userGroup.GET("/profile/:username/links", userHandler.Links)
+	userGroup.GET("/profile/:username/comments", userHandler.Comments)
 
 	//commentGroup := engine.Group("/c")
 	//commentGroup.GET("/vote", commentHandler.Vote)
@@ -50,6 +53,7 @@ func Setup(injector *do.Injector, engine *gin.Engine) {
 	tagGroup := engine.Group("/t")
 	tagGroup.GET("/type/:type", postHandler.SearchByType)
 	tagGroup.GET("/:tag", postHandler.SearchByTag)
+	tagGroup.GET("/p/:tag", postHandler.SearchByParentTag)
 
 }
 

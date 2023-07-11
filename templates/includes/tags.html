@@ -2,18 +2,22 @@
 
 {{define "content"}}
 
-{{range $i, $e := .tags}}
-{{if not $e.ParentID}}
-{{if gt $i 0}}</div>{{end}}
-<p class="font-bold text-lg my-4 underline cursor-pointer text-black"
-   style="text-underline-offset: 0.4rem;text-decoration-thickness: 2px;">{{$e.Name}}</p>
-<div class="flex flex-col gap-2 text-gray text-sm ">
-    {{else}}
-    <div class="flex flex-row gap-2">
-        <div class="bg-{{$e.BGColor}} px-2 rounded  cursor-pointer ">{{$e.Name}}</div>
-        <div>{{$e.Desc}}</div>
-    </div>
-    {{end}}
+{{range .tags}}
 
-    {{end}}
+    <p class="font-bold text-lg my-4 underline cursor-pointer text-black"
+       style="text-underline-offset: 0.4rem;text-decoration-thickness: 2px;">
+        <a href='/t/p/{{.Name}}'>{{.Name}}</a>
+    </p>
+
+    <div class="flex flex-col gap-2 text-gray text-sm ">
+        {{range .Children}}
+        <div class="flex flex-row gap-2">
+            <div class="bg-{{.BGColor}} px-2 rounded  cursor-pointer ">
+                <a href="/t/{{.Name}}">{{.Name}}</a>
+            </div>
+            <div>{{.Desc}}</div>
+        </div>
+        {{end}}
+    </div>
+{{end}}
 {{end}}

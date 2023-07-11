@@ -21,14 +21,14 @@ type NewCommentRequest struct {
 
 type QueryPostsRequest struct {
 	Userinfo  *Userinfo
-	Type      string
-	Tags      []string
-	Begin     *time.Time
-	End       *time.Time
-	Q         string
-	OrderType string
-	Page      int64
-	Size      int64
-	Domain    string
-	PostPID   string
+	Type      string     `form:"type"`
+	Tags      []string   `form:"tags"`
+	Begin     *time.Time `form:"begin"`
+	End       *time.Time `form:"end"`
+	Q         string     `form:"q"`
+	OrderType string     `form:"orderType"`
+	Page      int64      `form:"page"`
+	Size      int64      `form:"size"`
+	Domain    string     `form:"domain"`
+	PostPID   string     `form:"post_pid"`
 }

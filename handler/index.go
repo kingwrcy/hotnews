@@ -47,9 +47,22 @@ func (i *IndexHandler) ToSearch(c *gin.Context) {
 	}))
 }
 
+func (i *IndexHandler) DoSearch(c *gin.Context) {
+	var request vo.QueryPostsRequest
+	c.Bind(&request)
+	request.Size = 25
+	if request.Page <= 0 {
+		request.Page = 1
+	}
+	c.HTML(200, "search.html", OutputCommonSession(c, gin.H{
+		"selected":  "search",
+		"condition": request,
+	}, QueryPosts(i.db, request)))
+}
+
 func (i *IndexHandler) ToNew(c *gin.Context) {
 	var tags []model.TbTag
-	i.db.Model(&model.TbTag{}).Find(&tags)
+	i.db.Model(&model.TbTag{}).Where("parent_id is null").Preload("Children").Find(&tags)
 	c.HTML(200, "new.html", OutputCommonSession(c, gin.H{
 		"selected": "new",
 		"tags":     tags,
@@ -67,7 +80,7 @@ func (i *IndexHandler) ToBeInvited(c *gin.Context) {
 }
 func (i *IndexHandler) ToTags(c *gin.Context) {
 	var tags []model.TbTag
-	i.db.Model(model.TbTag{}).Find(&tags)
+	i.db.Model(&model.TbTag{}).Where("parent_id is null").Preload("Children").Find(&tags)
 	c.HTML(200, "tags.html", OutputCommonSession(c, gin.H{
 		"tags":     tags,
 		"selected": "tags",
@@ -122,9 +135,9 @@ func (i *IndexHandler) ToComments(c *gin.Context) {
 	userinfo := GetCurrentUser(c)
 
 	if userinfo != nil {
-		subQuery := i.db.Table("tb_vote").Select("target_id").Where("user_id = ? and type = 'COMMENT' and action ='UP'", userinfo.ID)
+		subQuery := i.db.Table("tb_vote").Select("tb_target_id").Where("tb_user_id = ? and type = 'COMMENT' and action ='UP'", userinfo.ID)
 
-		i.db.Table("tb_comment c").Select("c.*,IF(vote.target_id IS NOT NULL, 1, 0) AS UpVoted").Joins("LEFT JOIN (?) AS vote ON c.id = vote.target_id", subQuery).Preload("Post").
+		i.db.Table("tb_comment c").Select("c.*,IF(vote.tb_target_id IS NOT NULL, 1, 0) AS UpVoted").Joins("LEFT JOIN (?) AS vote ON c.id = vote.tb_target_id", subQuery).Preload("Post").
 			Preload("User").Order("created_at desc").Limit(int(size)).Offset((pageNumber - 1) * size).Find(&comments)
 	} else {
 		i.db.Model(model.TbComment{}).Preload("Post").
@@ -187,7 +200,7 @@ func (i *IndexHandler) Vote(c *gin.Context) {
 		}
 	}
 
-	if i.db.Model(&model.TbVote{}).Where("target_id = ? and user_id = ?  and type = ?", targetID, uid, targetType).Count(&exists); exists == 0 {
+	if i.db.Model(&model.TbVote{}).Where("tb_target_id = ? and user_id = ?  and type = ?", targetID, uid, targetType).Count(&exists); exists == 0 {
 		log.Printf("comment item.UserID == 0 ")
 		var col string
 		if action == "u" {

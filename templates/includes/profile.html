@@ -2,7 +2,7 @@
 
 {{define "content"}}
 <div class="flex flex-col gap2">
-    <p class="font-bold text-lg">JerryWang</p>
+    <p class="font-bold text-lg">{{.user.Username}}</p>
 
     <img class="w-20 h-20 rounded" src="https://i.pravatar.cc/120?img=1" alt=""
     />
@@ -20,17 +20,12 @@
 
     <div class="flex flex-row gap-8 items-center text-sm">
         <div class="font-bold">提交链接</div>
-        <div><a href="/" class="aLink">{{len .user.Posts}}</a></div>
+        <div><a href="/u/profile/{{.user.Username}}/links" class="aLink">{{len .user.Posts}}</a></div>
     </div>
 
     <div class="flex flex-row gap-8 items-center text-sm">
         <div class="font-bold">发表评论</div>
-        <div><a href="/" class="aLink">{{len .user.Comments}}</a></div>
-    </div>
-
-    <div class="flex flex-row gap-8 items-center text-sm">
-        <div class="font-bold">上次登录</div>
-        <div>2023-04-19</div>
+        <div><a href="/u/profile/{{.user.Username}}/comments" class="aLink">{{len .user.Comments}}</a></div>
     </div>
 
     <div class="flex flex-row gap-8 items-center text-sm">
@@ -38,4 +33,13 @@
         <div>{{.user.Bio}}</div>
     </div>
 </div>
+
+<div>
+    <p class="fw-700 my-4 text-2xl">提交的链接</p>
+    {{template "post" .}}
+</div>
+
+{{if .Comment}}
+{{template "comment" .}}
+{{end}}
 {{end}}

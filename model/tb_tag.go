@@ -11,7 +11,8 @@ type TbTag struct {
 	Posts    []TbPost `gorm:"many2many:tb_post_tag"`
 	Parent   *TbTag
 	ParentID *uint
-	BGColor  string `gorm:"column:bg_color;type:varchar(30)"`
+	Children []TbTag `gorm:"foreignkey:ParentID"`
+	BGColor  string  `gorm:"column:bg_color;type:varchar(30)"`
 }
 
 func (*TbTag) TableName() string {

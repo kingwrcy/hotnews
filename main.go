@@ -16,6 +16,7 @@ import (
 	"github.com/samber/do"
 	"html/template"
 	"path/filepath"
+	"strings"
 	"time"
 
 	"gorm.io/gorm"
@@ -86,7 +87,8 @@ func loadTemplates(templatesDir string) multitemplate.Renderer {
 		copy(layoutCopy, layouts)
 		files := append(layoutCopy, include)
 		r.AddFromFilesFuncs(filepath.Base(include), template.FuncMap{
-			"timeAgo": timeAgo,
+			"StringsJoin": strings.Join,
+			"timeAgo":     timeAgo,
 			"unEscapeHTML": func(content string) template.HTML {
 				return template.HTML(content)
 			},

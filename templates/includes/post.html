@@ -24,13 +24,13 @@
         });
 
         $("#comment_form").on("submit", function (event) {
-            textarea.value = sceditor.instance(textarea).fromBBCode(textarea.value)
+            textarea.value = sceditor.instance(textarea).fromBBCode(textarea.value).replaceAll("<br /><br /></div>","</div>")
         })
 
         $(document.body).delegate(".reply-form","submit",function (){
             const cid = $(this).data("cid");
             const commentTextarea = document.getElementById(`comment-${cid}`);
-            commentTextarea.value = sceditor.instance(commentTextarea).fromBBCode(commentTextarea.value)
+            commentTextarea.value = sceditor.instance(commentTextarea).fromBBCode(commentTextarea.value).replaceAll("<br /><br /></div>","</div>")
         });
 
         $(".reply").click(function () {

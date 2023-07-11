@@ -3,9 +3,12 @@ package handler
 import (
 	"github.com/gin-gonic/gin"
 	"github.com/kingwrcy/hn/model"
+	"github.com/kingwrcy/hn/vo"
 	"github.com/samber/do"
 	"github.com/spf13/cast"
 	"gorm.io/gorm"
+	"log"
+	"time"
 )
 
 type IndexHandler struct {
@@ -22,50 +25,20 @@ func NewIndexHandler(injector *do.Injector) (*IndexHandler, error) {
 
 func (i *IndexHandler) Index(c *gin.Context) {
 	userinfo := GetCurrentUser(c)
-	var waitApproved int64
-	if userinfo != nil {
-		if userinfo.Role == "admin" || userinfo.Role == "inspector" {
-			i.db.Model(&model.TbPost{}).Where("status = 'WAIT_APPROVE'").Count(&waitApproved)
-		}
-	}
 
-	var posts []model.TbPost
-	var total int64
-	var totalPage int64
-	size := 25
-	page := c.DefaultQuery("p", "1")
-	pageNumber := cast.ToInt(page)
+	begin := time.Now().AddDate(0, 0, -7)
 
-	if userinfo != nil {
-		subQuery := i.db.Table("tb_vote").Select("target_id").Where("user_id = ? and type = 'POST' and action ='UP'", userinfo.ID)
-
-		i.db.Table("tb_post p").Select("p.*,IF(vote.target_id IS NOT NULL, 1, 0) AS UpVoted").
-			Joins("LEFT JOIN (?) AS vote ON p.id = vote.target_id", subQuery).Preload("User").Preload("Tags").
-			Where("created_at >= now() - interval 7 day and status = 'Active'").
-			Order("point desc,created_at desc").
-			Offset((pageNumber - 1) * size).Limit(size).Find(&posts)
-	} else {
-		i.db.Model(&model.TbPost{}).Preload("User").Preload("Tags").
-			Where("created_at >= now() - interval 7 day and status = 'Active'").
-			Order("point desc,created_at desc").
-			Offset((pageNumber - 1) * size).Limit(size).Find(&posts)
-	}
-	i.db.Model(&model.TbPost{}).Where("created_at >= now() - interval 7 day and status = 'Active'").Count(&total)
-
-	totalPage = total / int64(size)
-	if total%int64(size) > 0 {
-		totalPage = totalPage + 1
-	}
+	page := c.DefaultQuery("page", "1")
 
 	c.HTML(200, "index.html", OutputCommonSession(c, gin.H{
-		"selected":     "/",
-		"waitApproved": waitApproved,
-		"posts":        posts,
-		"totalPage":    totalPage,
-		"hasNext":      int64(pageNumber) < totalPage,
-		"hasPrev":      int64(pageNumber) > 1,
-		"currentPage":  pageNumber,
-	}))
+		"selected": "/",
+	}, QueryPosts(i.db, vo.QueryPostsRequest{
+		Userinfo:  userinfo,
+		Begin:     &begin,
+		OrderType: "index",
+		Page:      cast.ToInt64(page),
+		Size:      25,
+	})))
 }
 
 func (i *IndexHandler) ToSearch(c *gin.Context) {
@@ -128,41 +101,15 @@ func (i *IndexHandler) ToWaitApproved(c *gin.Context) {
 func (i *IndexHandler) History(c *gin.Context) {
 	userinfo := GetCurrentUser(c)
 
-	var posts []model.TbPost
-	var total int64
-	var totalPage int64
-	size := 25
-	page := c.DefaultQuery("p", "1")
-	pageNumber := cast.ToInt(page)
-
-	i.db.Model(&model.TbPost{}).Where("created_at >= now() - interval 7 day and status = 'Active'").Count(&total)
-
-	if userinfo != nil {
-		subQuery := i.db.Table("tb_vote").Select("target_id").Where("user_id = ? and type = 'POST' and action ='UP'", userinfo.ID)
-
-		i.db.Table("tb_post p").Select("p.*,IF(vote.target_id IS NOT NULL, 1, 0) AS UpVoted").
-			Joins("LEFT JOIN (?) AS vote ON p.id = vote.target_id", subQuery).Preload("User").Preload("Tags").
-			Where("created_at >= now() - interval 7 day and status = 'Active'").Order("created_at desc").
-			Offset((pageNumber - 1) * size).Limit(size).Find(&posts)
-	} else {
-		i.db.Model(&model.TbPost{}).Preload("User").Preload("Tags").
-			Where("created_at >= now() - interval 7 day and status = 'Active'").Order("created_at desc").
-			Offset((pageNumber - 1) * size).Limit(size).Find(&posts)
-	}
-
-	totalPage = total / int64(size)
-	if total%int64(size) > 0 {
-		totalPage = totalPage + 1
-	}
+	page := c.DefaultQuery("page", "1")
 
 	c.HTML(200, "index.html", OutputCommonSession(c, gin.H{
-		"selected":    "history",
-		"posts":       posts,
-		"totalPage":   totalPage,
-		"hasNext":     int64(pageNumber) < totalPage,
-		"hasPrev":     int64(pageNumber) > 1,
-		"currentPage": pageNumber,
-	}))
+		"selected": "history",
+	}, QueryPosts(i.db, vo.QueryPostsRequest{
+		Userinfo: userinfo,
+		Page:     cast.ToInt64(page),
+		Size:     25,
+	})))
 }
 
 func (i *IndexHandler) ToComments(c *gin.Context) {
@@ -224,6 +171,7 @@ func (i *IndexHandler) Vote(c *gin.Context) {
 		i.db.Model(&model.TbPost{}).Where("pid = ?", id).First(&item)
 		targetID = item.ID
 		if item.UserID == uid {
+			log.Printf("item.UserID == uid ")
 			c.Redirect(302, refer)
 			return
 		}
@@ -232,12 +180,15 @@ func (i *IndexHandler) Vote(c *gin.Context) {
 		i.db.Model(&model.TbComment{}).Where("cid = ?", id).First(&item)
 		targetID = item.ID
 		if item.UserID == uid {
+			log.Printf("comment item.UserID == uid ")
+
 			c.Redirect(302, refer)
 			return
 		}
 	}
 
 	if i.db.Model(&model.TbVote{}).Where("target_id = ? and user_id = ?  and type = ?", targetID, uid, targetType).Count(&exists); exists == 0 {
+		log.Printf("comment item.UserID == 0 ")
 		var col string
 		if action == "u" {
 			vote.Action = "UP"
@@ -298,45 +249,17 @@ func (i *IndexHandler) Moderation(c *gin.Context) {
 func (i *IndexHandler) SearchByDomain(c *gin.Context) {
 	userinfo := GetCurrentUser(c)
 
-	var posts []model.TbPost
-	var total int64
-	var totalPage int64
-	size := 25
-	page := c.DefaultQuery("p", "1")
-	pageNumber := cast.ToInt(page)
-
 	domainName := c.Param("domainName")
 
-	if userinfo != nil {
-		subQuery := i.db.Table("tb_vote").Select("target_id").Where("user_id = ? and type = 'POST' and action ='UP'", userinfo.ID)
-
-		i.db.Table("tb_post p").Select("p.*,IF(vote.target_id IS NOT NULL, 1, 0) AS UpVoted").
-			Joins("LEFT JOIN (?) AS vote ON p.id = vote.target_id", subQuery).
-			Preload("User").Preload("Tags").
-			Where("status = 'Active' and p.domain = ?", domainName).
-			Order("created_at desc").
-			Offset((pageNumber - 1) * size).Limit(size).Find(&posts)
-	} else {
-		i.db.Table("tb_post p").Preload("User").
-			Preload("User").Preload("Tags").
-			Where("status = 'Active' and p.domain = ?", domainName).
-			Order("created_at desc").
-			Offset((pageNumber - 1) * size).Limit(size).Find(&posts)
-	}
-	i.db.Model(&model.TbPost{}).InnerJoins(",tb_post_tag pt,tb_tag t").
-		Where("status = 'Active' and p.domain = ?", domainName).
-		Count(&total)
-
-	totalPage = total / int64(size)
-	if total%int64(size) > 0 {
-		totalPage = totalPage + 1
-	}
+	page := c.DefaultQuery("p", "1")
 
 	c.HTML(200, "index.html", OutputCommonSession(c, gin.H{
-		"posts":       posts,
-		"totalPage":   totalPage,
-		"hasNext":     int64(pageNumber) < totalPage,
-		"hasPrev":     int64(pageNumber) > 1,
-		"currentPage": pageNumber,
-	}))
+		"selected": "/",
+	}, QueryPosts(i.db, vo.QueryPostsRequest{
+		Userinfo:  userinfo,
+		Domain:    domainName,
+		OrderType: "index",
+		Page:      cast.ToInt64(page),
+		Size:      25,
+	})))
 }

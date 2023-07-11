@@ -24,7 +24,7 @@ func Setup(injector *do.Injector, engine *gin.Engine) {
 	engine.GET("/s/:pid", indexHandler.ToPost)
 	engine.GET("/resetPwd", indexHandler.ToResetPwd)
 	engine.GET("/tags", indexHandler.ToTags)
-	engine.GET("/wait", indexHandler.ToWaitApproved)
+	//engine.GET("/wait", indexHandler.ToWaitApproved)
 	engine.GET("/comments", indexHandler.ToComments)
 	engine.GET("/vote", indexHandler.Vote)
 	engine.GET("/moderations", indexHandler.Moderation)
@@ -97,14 +97,17 @@ func GetCurrentUser(c *gin.Context) *vo.Userinfo {
 	return nil
 }
 
-func OutputCommonSession(c *gin.Context, h gin.H) gin.H {
+func OutputCommonSession(c *gin.Context, h ...gin.H) gin.H {
 	session := sessions.Default(c)
 	result := gin.H{}
 
 	result["login"] = session.Get("login")
 	result["userinfo"] = session.Get("userinfo")
-	for k, v := range h {
-		result[k] = v
+	for _, v := range h {
+		for k1, v1 := range v {
+
+			result[k1] = v1
+		}
 	}
 	return result
 }

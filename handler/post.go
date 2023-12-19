@@ -1,6 +1,7 @@
 package handler
 
 import (
+	"fmt"
 	"github.com/gin-gonic/gin"
 	"github.com/kingwrcy/hn/model"
 	"github.com/kingwrcy/hn/vo"
@@ -10,6 +11,7 @@ import (
 	"log"
 	"net/url"
 	"strings"
+	"time"
 )
 
 type PostHandler struct {
@@ -59,7 +61,7 @@ func (p PostHandler) Detail(c *gin.Context) {
 		buildCommentTree(&rootComments, p.db, uid)
 		posts[0].Comments = rootComments
 	}
-	c.HTML(200, "post.html", OutputCommonSession(c, gin.H{
+	c.HTML(200, "post.gohtml", OutputCommonSession(p.db, c, gin.H{
 		"posts":    posts,
 		"selected": "detail",
 	}))
@@ -91,7 +93,7 @@ func (p PostHandler) Add(c *gin.Context) {
 
 	var request vo.NewPostRequest
 	if err := c.Bind(&request); err != nil {
-		c.HTML(200, "new.html", OutputCommonSession(c, gin.H{
+		c.HTML(200, "new.gohtml", OutputCommonSession(p.db, c, gin.H{
 			"msg":      "参数异常",
 			"selected": "new",
 		}))
@@ -99,14 +101,14 @@ func (p PostHandler) Add(c *gin.Context) {
 	}
 	log.Printf("params:%+v", request)
 	if len(request.TagIDs) == 0 || len(request.TagIDs) > 5 {
-		c.HTML(200, "new.html", OutputCommonSession(c, gin.H{
+		c.HTML(200, "new.gohtml", OutputCommonSession(p.db, c, gin.H{
 			"msg":      "标签最少1个,最多5个",
 			"selected": "new",
 		}))
 		return
 	}
 	if request.Type == "" {
-		c.HTML(200, "new.html", OutputCommonSession(c, gin.H{
+		c.HTML(200, "new.gohtml", OutputCommonSession(p.db, c, gin.H{
 			"msg":      "类型必填",
 			"selected": "new",
 		}))
@@ -158,7 +160,7 @@ func (p PostHandler) Add(c *gin.Context) {
 		return nil
 	})
 	if err != nil {
-		c.HTML(200, "new.html", OutputCommonSession(c, gin.H{
+		c.HTML(200, "new.gohtml", OutputCommonSession(p.db, c, gin.H{
 			"msg":      "系统错误",
 			"selected": "new",
 		}))
@@ -183,17 +185,41 @@ func (p PostHandler) AddComment(c *gin.Context) {
 		return
 	}
 	comment.PostID = request.PostID
-	if request.ParentCommentId == 0 {
-		comment.ParentCommentID = nil
-	} else {
-		comment.ParentCommentID = &request.ParentCommentId
-	}
+
+	var message model.TbMessage
+	var post model.TbPost
+	p.db.First(&post, "id = ?", request.PostID)
 
 	comment.Content = request.Content
 	comment.UserID = uid
 	comment.UpVote = 0
 	comment.DownVote = 0
 	comment.CID = RandStringBytesMaskImpr(8)
+
+	if request.ParentCommentId == 0 {
+		comment.ParentCommentID = nil
+		if userinfo.ID != post.UserID {
+			message.ToUserID = post.UserID
+			message.Content = fmt.Sprintf("<a class='aLink' href='/u/profile/%s'>%s</a>在<a class='aLink' href='/p/%s'>[%s]</a>中回复了你的主题",
+				userinfo.Username, userinfo.Username, post.Pid+"#c-"+comment.CID, post.Title)
+		}
+	} else {
+		var parent model.TbComment
+		p.db.First(&parent, "id = ?", request.ParentCommentId)
+		comment.ParentCommentID = &request.ParentCommentId
+		if userinfo.ID != parent.UserID {
+			message.ToUserID = parent.UserID
+			message.Content = fmt.Sprintf("<a class='aLink' href='/u/profile/%s'>%s</a>在<a class='aLink' href='/p/%s'>[%s]</a>回复了<a class='aLink' href='/p/%s'>你的评论</a>",
+				userinfo.Username, userinfo.Username, post.Pid, post.Title, post.Pid+"#c-"+parent.CID)
+		}
+
+	}
+	message.FromUserID = 999999999
+
+	message.CreatedAt = time.Now()
+	message.UpdatedAt = time.Now()
+	message.Read = "N"
+
 	var redirectUrl = "/p/" + request.PostPID + "#c-" + comment.CID
 
 	err = p.db.Transaction(func(tx *gorm.DB) error {
@@ -202,6 +228,14 @@ func (p PostHandler) AddComment(c *gin.Context) {
 		}
 		if err := tx.Model(&model.TbPost{}).Where("id = ?", request.PostID).Update("commentCount", gorm.Expr("commentCount + 1")).Error; err != nil {
 			return err
+		}
+		if err := tx.Model(&model.TbUser{}).Where("id = ?", userinfo.ID).Update("commentCount", gorm.Expr("commentCount + 1")).Error; err != nil {
+			return err
+		}
+		if message.Content != "" {
+			if err := tx.Save(&message).Error; err != nil {
+				return err
+			}
 		}
 		return nil
 	})
@@ -218,7 +252,7 @@ func (p PostHandler) SearchByTag(c *gin.Context) {
 
 	tagName := strings.Split(c.Param("tag"), ",")
 
-	c.HTML(200, "index.html", OutputCommonSession(c, gin.H{
+	c.HTML(200, "index.gohtml", OutputCommonSession(p.db, c, gin.H{
 		"selected": "history",
 	}, QueryPosts(p.db, vo.QueryPostsRequest{
 		Userinfo:  userinfo,
@@ -238,7 +272,7 @@ func (p PostHandler) SearchByParentTag(c *gin.Context) {
 		Select("name").
 		Where("parent_id = (select id from tb_tag a where a.name = ?)", c.Param("tag")).Scan(&tags)
 
-	c.HTML(200, "index.html", OutputCommonSession(c, gin.H{
+	c.HTML(200, "index.gohtml", OutputCommonSession(p.db, c, gin.H{
 		"selected": "history",
 	}, QueryPosts(p.db, vo.QueryPostsRequest{
 		Userinfo:  userinfo,
@@ -253,7 +287,7 @@ func (p PostHandler) SearchByType(c *gin.Context) {
 	userinfo := GetCurrentUser(c)
 	page := c.DefaultQuery("p", "1")
 	typeName := c.Param("type")
-	c.HTML(200, "index.html", OutputCommonSession(c, gin.H{
+	c.HTML(200, "index.gohtml", OutputCommonSession(p.db, c, gin.H{
 		"selected": "history",
 	}, QueryPosts(p.db, vo.QueryPostsRequest{
 		Userinfo:  userinfo,

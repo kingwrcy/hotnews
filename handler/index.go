@@ -30,7 +30,7 @@ func (i *IndexHandler) Index(c *gin.Context) {
 
 	page := c.DefaultQuery("page", "1")
 
-	c.HTML(200, "index.html", OutputCommonSession(c, gin.H{
+	c.HTML(200, "index.gohtml", OutputCommonSession(i.db, c, gin.H{
 		"selected": "/",
 	}, QueryPosts(i.db, vo.QueryPostsRequest{
 		Userinfo:  userinfo,
@@ -42,7 +42,7 @@ func (i *IndexHandler) Index(c *gin.Context) {
 }
 
 func (i *IndexHandler) ToSearch(c *gin.Context) {
-	c.HTML(200, "search.html", OutputCommonSession(c, gin.H{
+	c.HTML(200, "search.gohtml", OutputCommonSession(i.db, c, gin.H{
 		"selected": "search",
 	}))
 }
@@ -54,7 +54,7 @@ func (i *IndexHandler) DoSearch(c *gin.Context) {
 	if request.Page <= 0 {
 		request.Page = 1
 	}
-	c.HTML(200, "search.html", OutputCommonSession(c, gin.H{
+	c.HTML(200, "search.gohtml", OutputCommonSession(i.db, c, gin.H{
 		"selected":  "search",
 		"condition": request,
 	}, QueryPosts(i.db, request)))
@@ -63,25 +63,26 @@ func (i *IndexHandler) DoSearch(c *gin.Context) {
 func (i *IndexHandler) ToNew(c *gin.Context) {
 	var tags []model.TbTag
 	i.db.Model(&model.TbTag{}).Where("parent_id is null").Preload("Children").Find(&tags)
-	c.HTML(200, "new.html", OutputCommonSession(c, gin.H{
+	c.HTML(200, "new.gohtml", OutputCommonSession(i.db, c, gin.H{
 		"selected": "new",
 		"tags":     tags,
 	}))
 }
 
 func (i *IndexHandler) ToPost(c *gin.Context) {
-	c.HTML(200, "post.html", OutputCommonSession(c, gin.H{}))
+	c.HTML(200, "post.gohtml", OutputCommonSession(i.db, c, gin.H{}))
 }
 func (i *IndexHandler) ToResetPwd(c *gin.Context) {
-	c.HTML(200, "resetPwd.html", OutputCommonSession(c, gin.H{}))
+	c.HTML(200, "resetPwd.gohtml", OutputCommonSession(i.db, c, gin.H{}))
 }
 func (i *IndexHandler) ToBeInvited(c *gin.Context) {
-	c.HTML(200, "toBeInvited.html", OutputCommonSession(c, gin.H{}))
+	c.HTML(200, "toBeInvited.gohtml", OutputCommonSession(i.db, c, gin.H{}))
 }
 func (i *IndexHandler) ToTags(c *gin.Context) {
 	var tags []model.TbTag
+
 	i.db.Model(&model.TbTag{}).Where("parent_id is null").Preload("Children").Find(&tags)
-	c.HTML(200, "tags.html", OutputCommonSession(c, gin.H{
+	c.HTML(200, "tags.gohtml", OutputCommonSession(i.db, c, gin.H{
 		"tags":     tags,
 		"selected": "tags",
 	}))
@@ -104,7 +105,7 @@ func (i *IndexHandler) ToWaitApproved(c *gin.Context) {
 		return
 	}
 
-	c.HTML(200, "wait.html", OutputCommonSession(c, gin.H{
+	c.HTML(200, "wait.gohtml", OutputCommonSession(i.db, c, gin.H{
 		"posts":        waitApprovedList,
 		"waitApproved": len(waitApprovedList),
 		"selected":     "approve",
@@ -116,7 +117,7 @@ func (i *IndexHandler) History(c *gin.Context) {
 
 	page := c.DefaultQuery("page", "1")
 
-	c.HTML(200, "index.html", OutputCommonSession(c, gin.H{
+	c.HTML(200, "index.gohtml", OutputCommonSession(i.db, c, gin.H{
 		"selected": "history",
 	}, QueryPosts(i.db, vo.QueryPostsRequest{
 		Userinfo: userinfo,
@@ -149,7 +150,7 @@ func (i *IndexHandler) ToComments(c *gin.Context) {
 	if total%int64(size) > 0 {
 		totalPage = totalPage + 1
 	}
-	c.HTML(200, "comments.html", OutputCommonSession(c, gin.H{
+	c.HTML(200, "comments.gohtml", OutputCommonSession(i.db, c, gin.H{
 		"selected":    "comment",
 		"comments":    comments,
 		"totalPage":   totalPage,
@@ -250,7 +251,7 @@ func (i *IndexHandler) Moderation(c *gin.Context) {
 	if total%int64(size) > 0 {
 		totalPage = totalPage + 1
 	}
-	c.HTML(200, "moderation.html", OutputCommonSession(c, gin.H{
+	c.HTML(200, "moderation.gohtml", OutputCommonSession(i.db, c, gin.H{
 		"logs":        logs,
 		"totalPage":   totalPage,
 		"hasNext":     pageNumber < int(totalPage),
@@ -266,7 +267,7 @@ func (i *IndexHandler) SearchByDomain(c *gin.Context) {
 
 	page := c.DefaultQuery("p", "1")
 
-	c.HTML(200, "index.html", OutputCommonSession(c, gin.H{
+	c.HTML(200, "index.gohtml", OutputCommonSession(i.db, c, gin.H{
 		"selected": "/",
 	}, QueryPosts(i.db, vo.QueryPostsRequest{
 		Userinfo:  userinfo,

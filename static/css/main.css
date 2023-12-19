@@ -34,8 +34,7 @@ a {
 }
 
 .content img {
-    max-width: 200px;
-    max-height: 200px;
+    max-width: 100%;
     object-fit: cover;
 }
 
@@ -123,3 +122,22 @@ div.sceditor-group{
     border-left:1px dashed #ccc;
 }
 
+
+
+.mytable tr:nth-of-type(odd) {
+    background: #eee;
+}
+
+.mytable th {
+    background: #666;
+    color: white;
+    font-size: 12px;
+
+}
+
+.mytable td, th {
+    padding: 10px;
+    border: 1px solid #ccc;
+    text-align: left;
+    font-size: 12px;
+}

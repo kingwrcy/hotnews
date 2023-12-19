@@ -8,8 +8,8 @@
         <div class="text-sm text-coolGray upVote">{{$post.UpVote}}</div>
     </div>
     <div class="flex flex-col flex-1 ">
-        <div class="flex flex-row gap-2 items-center">
-            <div class="font-bold text-black text-sm hover:text-gray">
+        <div class="flex flex-row gap-2 items-center ">
+            <div class="font-bold text-black text-sm hover:text-gray max-w-4/5">
                 {{ if eq $post.Type "ask"}}
                     <a href="/p/{{$post.Pid}}">{{$post.Title}}</a>
                 {{else}}

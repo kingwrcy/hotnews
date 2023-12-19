@@ -3,9 +3,12 @@ package handler
 import (
 	"github.com/gin-contrib/sessions"
 	"github.com/gin-gonic/gin"
+	"github.com/kingwrcy/hn/model"
 	"github.com/kingwrcy/hn/vo"
 	"github.com/samber/do"
+	"gorm.io/gorm"
 	"math/rand"
+	"time"
 )
 
 func Setup(injector *do.Injector, engine *gin.Engine) {
@@ -43,6 +46,9 @@ func Setup(injector *do.Injector, engine *gin.Engine) {
 	userGroup.GET("/profile/:username/asks", userHandler.Asks)
 	userGroup.GET("/profile/:username/links", userHandler.Links)
 	userGroup.GET("/profile/:username/comments", userHandler.Comments)
+	userGroup.GET("/message/setAllRead", userHandler.SetAllRead)
+	userGroup.GET("/message/setSingleRead", userHandler.SetSingleRead)
+	userGroup.GET("/message", userHandler.ToMessage)
 
 	//commentGroup := engine.Group("/c")
 	//commentGroup.GET("/vote", commentHandler.Vote)
@@ -103,16 +109,24 @@ func GetCurrentUser(c *gin.Context) *vo.Userinfo {
 	return nil
 }
 
-func OutputCommonSession(c *gin.Context, h ...gin.H) gin.H {
+func OutputCommonSession(db *gorm.DB, c *gin.Context, h ...gin.H) gin.H {
 	session := sessions.Default(c)
 	result := gin.H{}
-
+	start := c.GetInt64("executionTime")
+	result["executionTime"] = time.Since(time.UnixMilli(start)).Milliseconds()
 	result["login"] = session.Get("login")
 	result["userinfo"] = session.Get("userinfo")
 	for _, v := range h {
 		for k1, v1 := range v {
 			result[k1] = v1
 		}
+	}
+
+	var total int64
+	userinfo := GetCurrentUser(c)
+	if userinfo != nil {
+		db.Model(&model.TbMessage{}).Where("to_user_id = ? and `read` = 'N'", userinfo.ID).Count(&total)
+		result["unReadMessageCount"] = total
 	}
 	return result
 }

@@ -21,12 +21,12 @@
 
     <div class="flex flex-row gap-8 items-center text-sm">
         <div class="font-bold">提交链接</div>
-        <div><a href="/u/profile/{{.user.Username}}/links" class="aLink">{{len .user.Posts}}</a></div>
+        <div><a href="/u/profile/{{.user.Username}}/links" class="aLink">{{.user.PostCount}}</a></div>
     </div>
 
     <div class="flex flex-row gap-8 items-center text-sm">
         <div class="font-bold">发表评论</div>
-        <div><a href="/u/profile/{{.user.Username}}/comments" class="aLink">{{len .user.Comments}}</a></div>
+        <div><a href="/u/profile/{{.user.Username}}/comments" class="aLink">{{.user.CommentCount}}</a></div>
     </div>
 
     <div class="flex flex-row gap-8 items-center text-sm">

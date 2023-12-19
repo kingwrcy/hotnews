@@ -1,0 +1,15 @@
+{{ define "title"}}<title>首页</title>{{ end }}
+
+{{define "content"}}
+
+{{template "post" .}}
+
+<div class="flex flex-row gap2 items-center text-gray text-xs mt-4">
+    {{ if .hasPrev}}
+    <a href="?p={{sub .currentPage 1}}" class="hover:text-hover"><< 上一页</a>
+    {{end}}
+    {{ if .hasNext}}
+    <a href="?p={{add .currentPage 1}}" class="hover:text-hover">下一页>></a>
+    {{end}}
+</div>
+{{end}}

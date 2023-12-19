@@ -9,6 +9,7 @@ import (
 	"github.com/gin-contrib/sessions/cookie"
 	"github.com/gin-gonic/gin"
 	"github.com/kingwrcy/hn/handler"
+	"github.com/kingwrcy/hn/middleware"
 	"github.com/kingwrcy/hn/model"
 	"github.com/kingwrcy/hn/provider"
 	"github.com/kingwrcy/hn/task"
@@ -48,7 +49,11 @@ func main() {
 
 	db := do.MustInvoke[*gorm.DB](injector)
 	config := do.MustInvoke[*provider.AppConfig](injector)
-	err := db.AutoMigrate(&model.TbUser{}, &model.TbInviteRecord{}, &model.TbPost{}, &model.TbInspectLog{}, &model.TbComment{}, model.TbVote{})
+	err := db.AutoMigrate(&model.TbMessage{},
+		&model.TbUser{}, &model.TbInviteRecord{},
+		&model.TbPost{}, &model.TbInspectLog{},
+		&model.TbComment{},
+		model.TbVote{})
 	if err != nil {
 		log.Printf("升级数据库异常,启动失败.%s", err)
 		return
@@ -60,6 +65,7 @@ func main() {
 	store := cookie.NewStore([]byte(config.CookieSecret))
 
 	engine.Use(sessions.Sessions("c", store))
+	engine.Use(middleware.CostHandler())
 	engine.HTMLRender = loadTemplates("./templates")
 	engine.Static("/static", "./static")
 
@@ -73,12 +79,12 @@ func main() {
 
 func loadTemplates(templatesDir string) multitemplate.Renderer {
 	r := multitemplate.NewRenderer()
-	layouts, err := filepath.Glob(templatesDir + "/layouts/*.html")
+	layouts, err := filepath.Glob(templatesDir + "/layouts/*.gohtml")
 	if err != nil {
 		panic(err.Error())
 	}
 
-	includes, err := filepath.Glob(templatesDir + "/includes/*.html")
+	includes, err := filepath.Glob(templatesDir + "/includes/*.gohtml")
 	if err != nil {
 		panic(err.Error())
 	}

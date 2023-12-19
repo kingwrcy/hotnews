@@ -1,6 +1,7 @@
 package handler
 
 import (
+	"errors"
 	"github.com/gin-contrib/sessions"
 	"github.com/gin-gonic/gin"
 	"github.com/kingwrcy/hn/model"
@@ -10,6 +11,7 @@ import (
 	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
 	"log"
+	"net/mail"
 	"time"
 )
 
@@ -36,14 +38,11 @@ func (u *UserHandler) Login(c *gin.Context) {
 		})
 		return
 	}
-	log.Printf("req is %+v", request)
-
 	var user model.TbUser
 	if err := u.db.
 		Where("username = ?", request.Username).
 		First(&user).Error; err == gorm.ErrRecordNotFound {
 
-		log.Printf("error is %s", err)
 		c.HTML(200, "login.html", gin.H{
 			"msg":      "登录失败，用户名或者密码不正确 not exists",
 			"selected": "login",
@@ -92,11 +91,11 @@ func (u *UserHandler) Logout(c *gin.Context) {
 	session.Save()
 	c.Redirect(302, "/")
 }
-func (u *UserHandler) ToProfile(c *gin.Context) {
+
+func (u *UserHandler) Asks(c *gin.Context) {
 	username := c.Param("username")
 	var user model.TbUser
-	if err := u.db.Preload(clause.Associations).
-		Where("username= ?", username).First(&user).Error; err == gorm.ErrRecordNotFound {
+	if err := u.db.Preload(clause.Associations).Where("username= ?", username).First(&user).Error; err == gorm.ErrRecordNotFound {
 		c.HTML(200, "profile.html", OutputCommonSession(c, gin.H{
 			"selected": "mine",
 			"msg":      "如果用户确定存在,可能他改名字了.",
@@ -106,9 +105,18 @@ func (u *UserHandler) ToProfile(c *gin.Context) {
 
 	var inviteRecord model.TbInviteRecord
 	u.db.Where("invitedUsername = ?", user.Username).First(&inviteRecord)
+
+	var posts []model.TbPost
+	u.db.Model(&model.TbPost{}).Preload(clause.Associations).
+		Where("user_id = ? and status ='Active' and type = 'ask'", user.ID).
+		Order("created_at desc").
+		Find(&posts)
+
 	c.HTML(200, "profile.html", OutputCommonSession(c, gin.H{
 		"selected":     "mine",
 		"user":         user,
+		"sub":          "ask",
+		"posts":        posts,
 		"inviteRecord": inviteRecord,
 	}))
 }
@@ -129,13 +137,14 @@ func (u *UserHandler) Links(c *gin.Context) {
 
 	var posts []model.TbPost
 	u.db.Model(&model.TbPost{}).Preload(clause.Associations).
-		Where("user_id = ? and status ='Active'", user.ID).
+		Where("user_id = ? and status ='Active' and type = 'link'", user.ID).
 		Order("created_at desc").
 		Find(&posts)
 
 	c.HTML(200, "profile.html", OutputCommonSession(c, gin.H{
 		"selected":     "mine",
 		"user":         user,
+		"sub":          "link",
 		"posts":        posts,
 		"inviteRecord": inviteRecord,
 	}))
@@ -164,8 +173,31 @@ func (u *UserHandler) Comments(c *gin.Context) {
 	c.HTML(200, "profile.html", OutputCommonSession(c, gin.H{
 		"selected":     "mine",
 		"user":         user,
+		"sub":          "comments",
 		"comments":     comments,
 		"inviteRecord": inviteRecord,
+	}))
+}
+
+func (u *UserHandler) ToInvited(c *gin.Context) {
+	code := c.Param("code")
+	if code == "" {
+		c.Redirect(200, "/")
+		return
+	}
+	var invited model.TbInviteRecord
+	err := u.db.Where("code = ? and invalidAt >= now() and status = 'ENABLE'", code).First(&invited).Error
+	if err == gorm.ErrRecordNotFound {
+		c.HTML(200, "toBeInvited.html", gin.H{
+			"codeIsInvalid": true,
+			"msg":           "邀请码已使用/已过期/无效",
+		})
+		return
+	}
+
+	c.HTML(200, "toBeInvited.html", OutputCommonSession(c, gin.H{
+		"selected": "/",
+		"code":     code,
 	}))
 }
 
@@ -181,14 +213,39 @@ func (u *UserHandler) DoInvited(c *gin.Context) {
 	u.db.Where("code = ? and invalidAt >= now() and status = 'ENABLE'", code).First(&invited)
 	if &invited == nil {
 		c.HTML(200, "toBeInvited.html", gin.H{
-			"msg": "邀请码已使用/已过期/无效",
+			"codeIsInvalid": true,
+			"msg":           "邀请码已使用/已过期/无效",
 		})
 		return
 	}
 	var request vo.RegisterRequest
 	if err := c.Bind(&request); err != nil {
 		c.HTML(200, "toBeInvited.html", gin.H{
-			"msg": "参数无效",
+			"msg": "参数无效", "code": code,
+		})
+		return
+	}
+	if len(request.Username) < 3 {
+		c.HTML(200, "toBeInvited.html", gin.H{
+			"msg": "用户名长度必须大于3位", "code": code,
+		})
+		return
+	}
+	if len(request.Password) < 5 {
+		c.HTML(200, "toBeInvited.html", gin.H{
+			"msg": "密码长度必须大于5位", "code": code,
+		})
+		return
+	}
+	if request.Password != request.RepeatPassword {
+		c.HTML(200, "toBeInvited.html", gin.H{
+			"msg": "两次密码不一致", "code": code,
+		})
+		return
+	}
+	if _, ok := mail.ParseAddress(request.Email); ok != nil {
+		c.HTML(200, "toBeInvited.html", gin.H{
+			"msg": "邮箱格式不正确", "code": code,
 		})
 		return
 	}
@@ -196,7 +253,7 @@ func (u *UserHandler) DoInvited(c *gin.Context) {
 	hashedPwd, err := bcrypt.GenerateFromPassword([]byte(request.Password), bcrypt.DefaultCost)
 	if err != nil {
 		c.HTML(200, "toBeInvited.html", gin.H{
-			"msg": "系统异常",
+			"msg": "系统异常", "code": code,
 		})
 		return
 	}
@@ -223,6 +280,7 @@ func (u *UserHandler) DoInvited(c *gin.Context) {
 		if err != nil {
 			return err
 		}
+		log.Printf("succ")
 		err = tx.Model(&invited).Where("id=?", invited.ID).Updates(model.TbInviteRecord{
 			InvitedUsername:  request.Username,
 			InvitedUserEmail: request.Email,
@@ -237,7 +295,13 @@ func (u *UserHandler) DoInvited(c *gin.Context) {
 		}
 		return nil
 	})
-	if err != nil {
+	if errors.Is(err, gorm.ErrDuplicatedKey) {
+		c.HTML(200, "toBeInvited.html", gin.H{
+			"msg":  "用户名已经存在了,换一个吧",
+			"code": code,
+		})
+		return
+	} else if err != nil {
 		c.HTML(200, "toBeInvited.html", gin.H{
 			"msg": "系统异常",
 		})

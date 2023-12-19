@@ -9,7 +9,7 @@
     </div>
     <div class="flex flex-col flex-1 ">
         <div class="flex flex-row gap-2 items-center">
-            <div class="font-bold text-gray-6 text-sm hover:text-gray">
+            <div class="font-bold text-black text-sm hover:text-gray">
                 {{ if eq $post.Type "ask"}}
                     <a href="/p/{{$post.Pid}}">{{$post.Title}}</a>
                 {{else}}
@@ -34,11 +34,15 @@
         </div>
 
         <div class="flex flex-row gap2 items-center text-xs text-gray">
-            <div class="avatar">
+     <!--       <div class="avatar">
                 <a href="/u/profile/{{$post.User.Username}}"
-                ><img class="w-5 h-5 rounded" src="https://i.pravatar.cc/30?img=1" alt=""
-                /></a>
+                >
+                    <img class="w-5 h-5 rounded" src="https://i.pravatar.cc/30?u={{$post.User.Email}}" alt=""
+                    />
+
+                </a>
             </div>
+            -->
             <div ><a class="cursor-pointer  hover:text-hover" href="/u/profile/{{$post.User.Username}}">{{$post.User.Username}}</a></div>
             <div class="when">{{$post.CreatedAt | timeAgo}}</div>
             <div>|</div>
@@ -79,7 +83,7 @@
         {{end}}
 
 
-        {{if gt (len $post.Comments) 0}}
+        {{if and (gt (len $post.Comments) 0) (not (eq $.selected "mine"))}}
         <div id="comment-tree" class="mt-4 relative">
             {{range $post.Comments}}
                 {{template "comment" dict "Comment" . "Post" $post "Login" $.login}}

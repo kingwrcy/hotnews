@@ -1,6 +1,7 @@
 {{define "footer"}}
-<div class="flex flex-row gap2 items-center my-8 text-sm text-gray">
+<div class="flex flex-row gap2 items-center my-8 text-xs text-gray">
     <div>@2023</div>
+    <div>响应时间:{{.costMS}}ms</div>
     <div class="ml-auto flex flex-row gap2">
         <div class="text-xs"><a class="underline" href="/moderations">审核日志</a></div>
         <div class="text-xs"><a class="underline" href="/about">关于本站</a></div>

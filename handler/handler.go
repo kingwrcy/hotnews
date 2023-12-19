@@ -30,6 +30,8 @@ func Setup(injector *do.Injector, engine *gin.Engine) {
 	engine.GET("/moderations", indexHandler.Moderation)
 	engine.GET("/d/:domainName", indexHandler.SearchByDomain)
 	engine.POST("/search", indexHandler.DoSearch)
+	engine.GET("/invite/:code", userHandler.ToInvited)
+	engine.POST("/invite/:code", userHandler.DoInvited)
 
 	engine.POST("/inspect", inspectHandler.Inspect)
 
@@ -37,8 +39,8 @@ func Setup(injector *do.Injector, engine *gin.Engine) {
 	userGroup.POST("/login", userHandler.Login)
 	userGroup.GET("/login", userHandler.ToLogin)
 	userGroup.GET("/logout", userHandler.Logout)
-	userGroup.GET("/profile/:username", userHandler.ToProfile)
-	userGroup.GET("/invite/:code", userHandler.ToProfile)
+	userGroup.GET("/profile/:username", userHandler.Links)
+	userGroup.GET("/profile/:username/asks", userHandler.Asks)
 	userGroup.GET("/profile/:username/links", userHandler.Links)
 	userGroup.GET("/profile/:username/comments", userHandler.Comments)
 
@@ -109,7 +111,6 @@ func OutputCommonSession(c *gin.Context, h ...gin.H) gin.H {
 	result["userinfo"] = session.Get("userinfo")
 	for _, v := range h {
 		for k1, v1 := range v {
-
 			result[k1] = v1
 		}
 	}

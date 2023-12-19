@@ -9,7 +9,7 @@ const TableNameTbInviteRecord = "tb_invite_record"
 
 type TbInviteRecord struct {
 	gorm.Model
-	Username         string    `gorm:"column:id;type:varchar(30);"`
+	Username         string    `gorm:"column:username;type:varchar(30);"`
 	Code             string    `gorm:"column:code;type:varchar(30);unique"`
 	InvitedUsername  string    `gorm:"column:invitedUsername;type:varchar(30)"`
 	InvitedUserEmail string    `gorm:"column:invitedUserEmail;type:varchar(100)"`

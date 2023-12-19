@@ -44,9 +44,9 @@ func (p PostHandler) Detail(c *gin.Context) {
 	var rootComments []model.TbComment
 	if len(posts) > 0 {
 		if userinfo != nil {
-			subQuery := p.db.Table("tb_vote").Select("tb_target_id").Where("tb_user_id = ? and type = 'COMMENT' and action ='UP'", uid)
+			subQuery := p.db.Table("tb_vote").Select("target_id").Where("user_id = ? and type = 'COMMENT' and action ='UP'", uid)
 
-			p.db.Table("tb_comment c").Select("c.*,IF(vote.tb_target_id IS NOT NULL, 1, 0) AS UpVoted").Joins("LEFT JOIN (?) AS vote ON c.id = vote.tb_target_id", subQuery).
+			p.db.Table("tb_comment c").Select("c.*,IF(vote.target_id IS NOT NULL, 1, 0) AS UpVoted").Joins("LEFT JOIN (?) AS vote ON c.id = vote.target_id", subQuery).
 				Preload("User").Where("post_id = ? and parent_comment_id is null", posts[0].ID).Find(&rootComments)
 
 		} else {
@@ -66,15 +66,15 @@ func (p PostHandler) Detail(c *gin.Context) {
 }
 
 func buildCommentTree(comments *[]model.TbComment, db *gorm.DB, uid uint) {
-	subQuery := db.Table("tb_vote").Select("tb_target_id").Where("tb_user_id = ? and type = 'COMMENT' and action ='UP'", uid)
+	subQuery := db.Table("tb_vote").Select("target_id").Where("user_id = ? and type = 'COMMENT' and action ='UP'", uid)
 	for i := range *comments {
 		var children []model.TbComment
 		if uid > 0 {
-			db.Table("tb_comment c").Select("c.*,IF(vote.tb_target_id IS NOT NULL, 1, 0) AS UpVoted").
-				Joins("LEFT JOIN (?) AS vote ON c.id = vote.tb_target_id", subQuery).Preload("User").Where("post_id = ? and parent_comment_id = ?", (*comments)[i].PostID, (*comments)[i].ID).Find(&children)
+			db.Table("tb_comment c").Select("c.*,IF(vote.target_id IS NOT NULL, 1, 0) AS UpVoted").
+				Joins("LEFT JOIN (?) AS vote ON c.id = vote.target_id", subQuery).Preload("User").Where("post_id = ? and parent_comment_id = ?", (*comments)[i].PostID, (*comments)[i].ID).Find(&children)
 		} else {
 			db.Model(&model.TbComment{}).
-				Joins("LEFT JOIN (?) AS vote ON c.id = vote.tb_target_id", subQuery).Preload("User").Where("post_id = ? and parent_comment_id = ?", (*comments)[i].PostID, (*comments)[i].ID).Find(&children)
+				Joins("LEFT JOIN (?) AS vote ON c.id = vote.target_id", subQuery).Preload("User").Where("post_id = ? and parent_comment_id = ?", (*comments)[i].PostID, (*comments)[i].ID).Find(&children)
 		}
 		(*comments)[i].Comments = children
 		buildCommentTree(&(*comments)[i].Comments, db, uid)
@@ -219,11 +219,11 @@ func (p PostHandler) SearchByTag(c *gin.Context) {
 	tagName := strings.Split(c.Param("tag"), ",")
 
 	c.HTML(200, "index.html", OutputCommonSession(c, gin.H{
-		"selected": "/",
+		"selected": "history",
 	}, QueryPosts(p.db, vo.QueryPostsRequest{
 		Userinfo:  userinfo,
 		Tags:      tagName,
-		OrderType: "index",
+		OrderType: "",
 		Page:      cast.ToInt64(page),
 		Size:      25,
 	})))
@@ -239,11 +239,11 @@ func (p PostHandler) SearchByParentTag(c *gin.Context) {
 		Where("parent_id = (select id from tb_tag a where a.name = ?)", c.Param("tag")).Scan(&tags)
 
 	c.HTML(200, "index.html", OutputCommonSession(c, gin.H{
-		"selected": "/",
+		"selected": "history",
 	}, QueryPosts(p.db, vo.QueryPostsRequest{
 		Userinfo:  userinfo,
 		Tags:      tags,
-		OrderType: "index",
+		OrderType: "",
 		Page:      cast.ToInt64(page),
 		Size:      25,
 	})))
@@ -254,11 +254,11 @@ func (p PostHandler) SearchByType(c *gin.Context) {
 	page := c.DefaultQuery("p", "1")
 	typeName := c.Param("type")
 	c.HTML(200, "index.html", OutputCommonSession(c, gin.H{
-		"selected": "/",
+		"selected": "history",
 	}, QueryPosts(p.db, vo.QueryPostsRequest{
 		Userinfo:  userinfo,
 		Type:      typeName,
-		OrderType: "index",
+		OrderType: "",
 		Page:      cast.ToInt64(page),
 		Size:      25,
 	})))
@@ -286,10 +286,10 @@ func QueryPosts(db *gorm.DB, request vo.QueryPostsRequest) gin.H {
 		tx.Where("title like ? or content like ?", "%"+request.Q+"%", "%"+request.Q+"%")
 	}
 	if request.Userinfo != nil {
-		subQuery := db.Table("tb_vote").Select("tb_target_id").Where("tb_user_id = ? and type = 'POST' and action ='UP'", request.Userinfo.ID)
+		subQuery := db.Table("tb_vote").Select("target_id").Where("user_id = ? and type = 'POST' and action ='UP'", request.Userinfo.ID)
 
-		tx.Select("p.*,IF(vote.tb_target_id IS NOT NULL, 1, 0) AS UpVoted")
-		tx.Joins("LEFT JOIN (?) AS vote ON p.id = vote.tb_target_id", subQuery)
+		tx.Select("p.*,IF(vote.target_id IS NOT NULL, 1, 0) AS UpVoted")
+		tx.Joins("LEFT JOIN (?) AS vote ON p.id = vote.target_id", subQuery)
 	}
 	if len(request.Tags) > 0 {
 		tx.InnerJoins(",tb_post_tag pt,tb_tag t")

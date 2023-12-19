@@ -55,6 +55,8 @@ func main() {
 	}
 	gob.Register(vo.Userinfo{})
 	engine := gin.Default()
+
+	//store, _ := redis.NewStore(10, "tcp", config.RedisAddress, "", []byte(config.CookieSecret))
 	store := cookie.NewStore([]byte(config.CookieSecret))
 
 	engine.Use(sessions.Sessions("c", store))

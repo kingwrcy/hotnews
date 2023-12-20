@@ -335,6 +335,7 @@ func QueryPosts(db *gorm.DB, request vo.QueryPostsRequest) gin.H {
 	tx.Count(&total)
 
 	if request.OrderType == "index" {
+		tx.Where("created_at >= current_date() - interval 7 day")
 		tx.Order("point desc,created_at desc")
 	} else {
 		tx.Order("created_at desc")

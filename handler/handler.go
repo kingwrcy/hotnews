@@ -35,6 +35,8 @@ func Setup(injector *do.Injector, engine *gin.Engine) {
 	engine.POST("/search", indexHandler.DoSearch)
 	engine.GET("/invite/:code", userHandler.ToInvited)
 	engine.POST("/invite/:code", userHandler.DoInvited)
+	engine.GET("/about", userHandler.ToAbout)
+	engine.GET("/type/:type", postHandler.SearchByType)
 
 	engine.POST("/inspect", inspectHandler.Inspect)
 
@@ -59,7 +61,6 @@ func Setup(injector *do.Injector, engine *gin.Engine) {
 	postGroup.POST("/comment", postHandler.AddComment)
 
 	tagGroup := engine.Group("/t")
-	tagGroup.GET("/type/:type", postHandler.SearchByType)
 	tagGroup.GET("/:tag", postHandler.SearchByTag)
 	tagGroup.GET("/p/:tag", postHandler.SearchByParentTag)
 

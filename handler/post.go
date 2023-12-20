@@ -46,7 +46,7 @@ func (p PostHandler) Detail(c *gin.Context) {
 	var rootComments []model.TbComment
 	if len(posts) > 0 {
 		if userinfo != nil {
-			subQuery := p.db.Table("tb_vote").Select("target_id").Where("user_id = ? and type = 'COMMENT' and action ='UP'", uid)
+			subQuery := p.db.Table("tb_vote").Select("target_id").Where("tb_user_id = ? and type = 'COMMENT' and action ='UP'", uid)
 
 			p.db.Table("tb_comment c").Select("c.*,IF(vote.target_id IS NOT NULL, 1, 0) AS UpVoted").Joins("LEFT JOIN (?) AS vote ON c.id = vote.target_id", subQuery).
 				Preload("User").Where("post_id = ? and parent_comment_id is null", posts[0].ID).Find(&rootComments)
@@ -68,7 +68,7 @@ func (p PostHandler) Detail(c *gin.Context) {
 }
 
 func buildCommentTree(comments *[]model.TbComment, db *gorm.DB, uid uint) {
-	subQuery := db.Table("tb_vote").Select("target_id").Where("user_id = ? and type = 'COMMENT' and action ='UP'", uid)
+	subQuery := db.Table("tb_vote").Select("target_id").Where("tb_user_id = ? and type = 'COMMENT' and action ='UP'", uid)
 	for i := range *comments {
 		var children []model.TbComment
 		if uid > 0 {
@@ -320,7 +320,7 @@ func QueryPosts(db *gorm.DB, request vo.QueryPostsRequest) gin.H {
 		tx.Where("title like ? or content like ?", "%"+request.Q+"%", "%"+request.Q+"%")
 	}
 	if request.Userinfo != nil {
-		subQuery := db.Table("tb_vote").Select("target_id").Where("user_id = ? and type = 'POST' and action ='UP'", request.Userinfo.ID)
+		subQuery := db.Table("tb_vote").Select("target_id").Where("tb_user_id = ? and type = 'POST' and action ='UP'", request.Userinfo.ID)
 
 		tx.Select("p.*,IF(vote.target_id IS NOT NULL, 1, 0) AS UpVoted")
 		tx.Joins("LEFT JOIN (?) AS vote ON p.id = vote.target_id", subQuery)
@@ -341,17 +341,21 @@ func QueryPosts(db *gorm.DB, request vo.QueryPostsRequest) gin.H {
 	}
 
 	var posts []model.TbPost
-	tx.Preload("Tags").Preload("User").Limit(int(request.Size)).Offset(int((request.Page - 1) * request.Size)).Find(&posts)
+	tx.Preload("Tags").Preload("User").
+		Limit(int(request.Size)).
+		Offset(int((request.Page - 1) * request.Size)).
+		Find(&posts)
 
 	totalPage := total / request.Size
 	if total%request.Size > 0 {
 		totalPage = totalPage + 1
 	}
+	log.Printf("page :%d , %d , %d", request.Page, totalPage, request.Size)
 	return gin.H{
 		"posts":       posts,
 		"totalPage":   totalPage,
 		"hasNext":     request.Page < totalPage,
 		"hasPrev":     request.Page > 1,
-		"currentPage": request.Page,
+		"currentPage": cast.ToInt(request.Page),
 	}
 }

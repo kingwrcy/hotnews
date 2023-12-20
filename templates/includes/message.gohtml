@@ -7,25 +7,28 @@
         <div class="flex my-4 justify-end">
             <a class="btn" href="/u/message/setAllRead">全部已读</a>
         </div>
-    {{end}}
-    <table class="w-full mytable" style="border-collapse: collapse; ">
-        <thead>
-        <tr>
-            <th>发送时间</th>
-            <th>发送人</th>
-            <th>内容</th>
-            <th>操作</th>
-        </tr>
-        </thead>
-        <tbody>
-        {{range .messages}}
+        <table class="w-full mytable" style="border-collapse: collapse; ">
+            <thead>
             <tr>
-                <td>{{.CreatedAt | timeAgo}}</td>
-                <td>{{if eq .FromUserID 999999999}}系统{{else}}111{{end}}</td>
-                <td style="max-width:300px;">{{.Content  | unEscapeHTML}}</td>
-                <td>{{if eq .Read "N"}}<a class="btn" href="/u/message/setSingleRead?id={{.ID}}">已读</a>{{end}}</td>
+                <th>发送时间</th>
+                <th>发送人</th>
+                <th>内容</th>
+                <th>操作</th>
             </tr>
-        {{end}}
-        </tbody>
-    </table>
+            </thead>
+            <tbody>
+            {{range .messages}}
+                <tr>
+                    <td>{{.CreatedAt | timeAgo}}</td>
+                    <td>{{if eq .FromUserID 999999999}}系统{{else}}111{{end}}</td>
+                    <td style="max-width:300px;">{{.Content  | unEscapeHTML}}</td>
+                    <td>{{if eq .Read "N"}}<a class="btn" href="/u/message/setSingleRead?id={{.ID}}">已读</a>{{end}}</td>
+                </tr>
+            {{end}}
+            </tbody>
+        </table>
+    {{else}}
+        暂无消息
+    {{end}}
+
 {{end}}

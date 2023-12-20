@@ -1,50 +1,84 @@
 {{ define "title"}}<title>我的</title>{{ end }}
 
 {{define "content"}}
-<div class="flex flex-col gap2">
-    <p class="font-bold text-lg">{{.user.Username}}</p>
-    <!--
-    <img class="w-20 h-20 rounded" src="https://i.pravatar.cc/120?img=1" alt=""
-    />
-    -->
 
 
-    <div class="flex flex-row gap-8 items-center text-sm">
-        <div class="font-bold ">账号状态</div>
-        <div>{{.user.Status}}</div>
-    </div>
+    {{if .msg}}
+        <div class="fw-bold my-4">不存在这个用户</div>
+        {{.msg}}
+    {{else}}
 
-    <div class="flex flex-row gap-8 items-center text-sm">
-        <div class="font-bold">加入时间</div>
-        <div>{{.user.CreatedAt.Format "2006-01-02"}}{{if .inviteRecord.Username }}  通过  <a href="/u/{{.inviteRecord.Username}}" class="aLink">{{.inviteRecord.Username}}</a> 的 <a href="/" class="aLink">邀请</a> 加入{{end}}</div>
-    </div>
 
-    <div class="flex flex-row gap-8 items-center text-sm">
-        <div class="font-bold">提交链接</div>
-        <div><a href="/u/profile/{{.user.Username}}/links" class="aLink">{{.user.PostCount}}</a></div>
-    </div>
+        <div class="flex flex-col gap2">
+            <p class="font-bold text-lg">{{.user.Username}}</p>
+            <!--
+            <img class="w-20 h-20 rounded" src="https://i.pravatar.cc/120?img=1" alt=""
+            />
+            -->
 
-    <div class="flex flex-row gap-8 items-center text-sm">
-        <div class="font-bold">发表评论</div>
-        <div><a href="/u/profile/{{.user.Username}}/comments" class="aLink">{{.user.CommentCount}}</a></div>
-    </div>
 
-    <div class="flex flex-row gap-8 items-center text-sm">
-        <div class="font-bold">个人介绍</div>
-        <div>{{.user.Bio}}</div>
-    </div>
-</div>
+            <div class="flex flex-row gap-8 items-center text-sm">
+                <div class="font-bold ">账号状态</div>
+                <div>{{.user.Status}}</div>
+            </div>
 
-<div class="flex gap-2 my-4 border-b border-b-gray border-b-solid text-sm fw-bold">
-    <a class="{{if eq .sub "link"}}border-b border-b-[#5468ff] border-b-solid border-b-2 {{end}} cursor-pointer hover:text-gray" href="/u/profile/{{.user.Username}}/links">分享</a>
-    <a class="{{if eq .sub "ask"}}border-b border-b-[#5468ff] border-b-solid border-b-2{{end}} cursor-pointer hover:text-gray" href="/u/profile/{{.user.Username}}/asks">讨论</a>
-    <a class="{{if eq .sub "comments"}}border-b border-b-[#5468ff] border-b-solid border-b-2{{end}} cursor-pointer hover:text-gray" href="/u/profile/{{.user.Username}}/comments">评论</a>
+            <div class="flex flex-row gap-8 items-center text-sm">
+                <div class="font-bold">加入时间</div>
+                <div>{{.user.CreatedAt.Format "2006-01-02"}}{{if .invitedUsername }}  通过  <a
+                            href="/u/profile/{{.invitedUsername}}" class="aLink">{{.invitedUsername}}</a> 的 <a href="/"
+                                                                                                                class="aLink">邀请</a> 加入{{end}}
+                </div>
+            </div>
 
-</div>
-{{template "post" .}}
-{{if .comments}}
-    {{range .comments}}
-        {{template "comment" dict "Comment" . "Login" false}}
+            <div class="flex flex-row gap-8 items-center text-sm">
+                <div class="font-bold">提交链接</div>
+                <div><a href="/u/profile/{{.user.Username}}/links" class="aLink">{{.user.PostCount}}</a></div>
+            </div>
+
+            <div class="flex flex-row gap-8 items-center text-sm">
+                <div class="font-bold">发表评论</div>
+                <div><a href="/u/profile/{{.user.Username}}/comments" class="aLink">{{.user.CommentCount}}</a></div>
+            </div>
+
+            <div class="flex flex-row gap-8 items-center text-sm">
+                <div class="font-bold">个人介绍</div>
+                <div>{{.user.Bio}}</div>
+            </div>
+            {{if .inviteRecords}}
+                <div class="flex flex-row gap-8 items-start text-sm ">
+                    <div class="font-bold">邀请他人</div>
+                    <div class="flex flex-col gap-2">
+                        {{range .inviteRecords}}
+                            <div class="flex items-end">
+                                {{if eq .Status "DISABLE"}}
+                                    {{.Code}} - 已经被 <a class="aLink"
+                                                          href="/u/profile/{{.InvitedUsername}}">{{.InvitedUsername}}</a> 使用
+                                {{else}}
+                                    <a class="aLink" href="/invite/{{.Code}}">{{.Code}}</a>
+                                    <div class="cursor-pointer text-xs">复制链接</div>
+                                {{end}}
+                            </div>
+                        {{end}}
+                    </div>
+                </div>
+            {{end}}
+        </div>
+
+        <div class="flex gap-2 my-4 border-b border-b-gray border-b-solid text-sm fw-bold">
+            <a class="{{if eq .sub "link"}}border-b border-b-[#5468ff] border-b-solid border-b-2 {{end}} cursor-pointer hover:text-gray"
+               href="/u/profile/{{.user.Username}}/links">分享</a>
+            <a class="{{if eq .sub "ask"}}border-b border-b-[#5468ff] border-b-solid border-b-2{{end}} cursor-pointer hover:text-gray"
+               href="/u/profile/{{.user.Username}}/asks">讨论</a>
+            <a class="{{if eq .sub "comments"}}border-b border-b-[#5468ff] border-b-solid border-b-2{{end}} cursor-pointer hover:text-gray"
+               href="/u/profile/{{.user.Username}}/comments">评论</a>
+
+        </div>
+        {{template "post" .}}
+        {{if .comments}}
+            {{range .comments}}
+                {{template "comment" dict "Comment" . "Login" false}}
+            {{end}}
+        {{end}}
+
     {{end}}
-{{end}}
 {{end}}

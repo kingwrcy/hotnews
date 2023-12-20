@@ -93,6 +93,7 @@ func (u *UserHandler) Logout(c *gin.Context) {
 }
 
 func (u *UserHandler) Asks(c *gin.Context) {
+	userinfo := GetCurrentUser(c)
 	username := c.Param("username")
 	var user model.TbUser
 	if err := u.db.Preload(clause.Associations).Where("username= ?", username).First(&user).Error; err == gorm.ErrRecordNotFound {
@@ -103,8 +104,12 @@ func (u *UserHandler) Asks(c *gin.Context) {
 		return
 	}
 
-	var inviteRecord model.TbInviteRecord
-	u.db.Where("invitedUsername = ?", user.Username).First(&inviteRecord)
+	var inviteRecords []model.TbInviteRecord
+	if userinfo != nil && userinfo.ID == user.ID {
+		u.db.Model(&model.TbInviteRecord{}).Where("username = ?", user.Username).Find(&inviteRecords)
+	}
+	var invitedUsername string
+	u.db.Model(&model.TbInviteRecord{}).Select("username").Where("invitedUsername = ?", user.Username).First(&invitedUsername)
 
 	var posts []model.TbPost
 	u.db.Model(&model.TbPost{}).Preload(clause.Associations).
@@ -113,15 +118,18 @@ func (u *UserHandler) Asks(c *gin.Context) {
 		Find(&posts)
 
 	c.HTML(200, "profile.gohtml", OutputCommonSession(u.db, c, gin.H{
-		"selected":     "mine",
-		"user":         user,
-		"sub":          "ask",
-		"posts":        posts,
-		"inviteRecord": inviteRecord,
+		"selected":        "mine",
+		"user":            user,
+		"sub":             "ask",
+		"posts":           posts,
+		"inviteRecords":   inviteRecords,
+		"invitedUsername": invitedUsername,
 	}))
 }
 
 func (u *UserHandler) Links(c *gin.Context) {
+	userinfo := GetCurrentUser(c)
+
 	username := c.Param("username")
 	var user model.TbUser
 	if err := u.db.Preload(clause.Associations).Where("username= ?", username).First(&user).Error; err == gorm.ErrRecordNotFound {
@@ -132,8 +140,12 @@ func (u *UserHandler) Links(c *gin.Context) {
 		return
 	}
 
-	var inviteRecord model.TbInviteRecord
-	u.db.Where("invitedUsername = ?", user.Username).First(&inviteRecord)
+	var inviteRecords []model.TbInviteRecord
+	if userinfo != nil && userinfo.ID == user.ID {
+		u.db.Model(&model.TbInviteRecord{}).Where("username = ?", user.Username).Scan(&inviteRecords)
+	}
+	var invitedUsername string
+	u.db.Model(&model.TbInviteRecord{}).Select("username").Where("invitedUsername = ?", user.Username).First(&invitedUsername)
 
 	var posts []model.TbPost
 	u.db.Model(&model.TbPost{}).Preload(clause.Associations).
@@ -142,11 +154,12 @@ func (u *UserHandler) Links(c *gin.Context) {
 		Find(&posts)
 
 	c.HTML(200, "profile.gohtml", OutputCommonSession(u.db, c, gin.H{
-		"selected":     "mine",
-		"user":         user,
-		"sub":          "link",
-		"posts":        posts,
-		"inviteRecord": inviteRecord,
+		"selected":        "mine",
+		"user":            user,
+		"sub":             "link",
+		"posts":           posts,
+		"inviteRecords":   inviteRecords,
+		"invitedUsername": invitedUsername,
 	}))
 }
 
@@ -190,7 +203,6 @@ func (u *UserHandler) SetAllRead(c *gin.Context) {
 }
 
 func (u *UserHandler) SetSingleRead(c *gin.Context) {
-	log.Printf("get id %+v", "1111111")
 	userinfo := GetCurrentUser(c)
 	if userinfo == nil {
 		c.Redirect(302, "/u/login")
@@ -205,6 +217,8 @@ func (u *UserHandler) SetSingleRead(c *gin.Context) {
 }
 
 func (u *UserHandler) Comments(c *gin.Context) {
+	userinfo := GetCurrentUser(c)
+
 	username := c.Param("username")
 	var user model.TbUser
 	if err := u.db.Preload(clause.Associations).Where("username= ?", username).First(&user).Error; err == gorm.ErrRecordNotFound {
@@ -215,9 +229,13 @@ func (u *UserHandler) Comments(c *gin.Context) {
 		return
 	}
 
-	var inviteRecord model.TbInviteRecord
-	u.db.Where("invitedUsername = ?", user.Username).First(&inviteRecord)
+	var inviteRecords []model.TbInviteRecord
+	if userinfo != nil && userinfo.ID == user.ID {
+		u.db.Model(&model.TbInviteRecord{}).Where("username = ?", user.Username).Find(&inviteRecords)
+	}
 
+	var invitedUsername string
+	u.db.Model(&model.TbInviteRecord{}).Select("username").Where("invitedUsername = ?", user.Username).First(&invitedUsername)
 	var comments []model.TbComment
 	u.db.Model(&model.TbComment{}).
 		Where("user_id = ? ", user.ID).
@@ -225,11 +243,12 @@ func (u *UserHandler) Comments(c *gin.Context) {
 		Find(&comments)
 
 	c.HTML(200, "profile.gohtml", OutputCommonSession(u.db, c, gin.H{
-		"selected":     "mine",
-		"user":         user,
-		"sub":          "comments",
-		"comments":     comments,
-		"inviteRecord": inviteRecord,
+		"selected":        "mine",
+		"user":            user,
+		"sub":             "comments",
+		"comments":        comments,
+		"inviteRecords":   inviteRecords,
+		"invitedUsername": invitedUsername,
 	}))
 }
 
@@ -252,6 +271,12 @@ func (u *UserHandler) ToInvited(c *gin.Context) {
 	c.HTML(200, "toBeInvited.gohtml", OutputCommonSession(u.db, c, gin.H{
 		"selected": "/",
 		"code":     code,
+	}))
+}
+
+func (u *UserHandler) ToAbout(c *gin.Context) {
+	c.HTML(200, "about.gohtml", OutputCommonSession(u.db, c, gin.H{
+		"selected": "/",
 	}))
 }
 

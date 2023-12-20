@@ -28,7 +28,7 @@ func (i *IndexHandler) Index(c *gin.Context) {
 
 	begin := time.Now().AddDate(0, 0, -7)
 
-	page := c.DefaultQuery("page", "1")
+	page := c.DefaultQuery("p", "1")
 
 	c.HTML(200, "index.gohtml", OutputCommonSession(i.db, c, gin.H{
 		"selected": "/",
@@ -115,7 +115,7 @@ func (i *IndexHandler) ToWaitApproved(c *gin.Context) {
 func (i *IndexHandler) History(c *gin.Context) {
 	userinfo := GetCurrentUser(c)
 
-	page := c.DefaultQuery("page", "1")
+	page := c.DefaultQuery("p", "1")
 
 	c.HTML(200, "index.gohtml", OutputCommonSession(i.db, c, gin.H{
 		"selected": "history",
@@ -136,7 +136,7 @@ func (i *IndexHandler) ToComments(c *gin.Context) {
 	userinfo := GetCurrentUser(c)
 
 	if userinfo != nil {
-		subQuery := i.db.Table("tb_vote").Select("target_id").Where("user_id = ? and type = 'COMMENT' and action ='UP'", userinfo.ID)
+		subQuery := i.db.Table("tb_vote").Select("target_id").Where("tb_user_id = ? and type = 'COMMENT' and action ='UP'", userinfo.ID)
 
 		i.db.Table("tb_comment c").Select("c.*,IF(vote.target_id IS NOT NULL, 1, 0) AS UpVoted").Joins("LEFT JOIN (?) AS vote ON c.id = vote.target_id", subQuery).Preload("Post").
 			Preload("User").Order("created_at desc").Limit(int(size)).Offset((pageNumber - 1) * size).Find(&comments)

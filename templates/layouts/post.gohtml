@@ -9,7 +9,7 @@
     </div>
     <div class="flex flex-col flex-1 ">
         <div class="flex flex-row gap-2 items-center ">
-            <div class="font-bold text-black text-sm hover:text-gray max-w-4/5">
+            <div class="text-sm font-bold text-black hover:text-gray max-w-4/5">
                 {{ if eq $post.Type "ask"}}
                     <a href="/p/{{$post.Pid}}">{{$post.Title}}</a>
                 {{else}}
@@ -24,7 +24,7 @@
                 {{end}}
                 {{ if eq $post.Type "ask"}}
                 <div class=" border px-1.5 rounded bg-gray-2 b-solid  cursor-pointer ask bg-red text-white">
-                    <a href="/t/type/ask" >讨论</a>
+                    <a href="/type/ask" >讨论</a>
                 </div>
                 {{end}}
                 <div class="text-gray ">

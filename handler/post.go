@@ -200,7 +200,7 @@ func (p PostHandler) AddComment(c *gin.Context) {
 		comment.ParentCommentID = nil
 		if userinfo.ID != post.UserID {
 			message.ToUserID = post.UserID
-			message.Content = fmt.Sprintf("<a class='aLink' href='/u/profile/%s'>%s</a>在<a class='aLink' href='/p/%s'>[%s]</a>中回复了你的主题",
+			message.Content = fmt.Sprintf("<a class='bLink' href='/u/profile/%s'>%s</a>在<a class='bLink' href='/p/%s'>[%s]</a>中回复了你的主题",
 				userinfo.Username, userinfo.Username, post.Pid+"#c-"+comment.CID, post.Title)
 		}
 	} else {
@@ -209,7 +209,7 @@ func (p PostHandler) AddComment(c *gin.Context) {
 		comment.ParentCommentID = &request.ParentCommentId
 		if userinfo.ID != parent.UserID {
 			message.ToUserID = parent.UserID
-			message.Content = fmt.Sprintf("<a class='aLink' href='/u/profile/%s'>%s</a>在<a class='aLink' href='/p/%s'>[%s]</a>回复了<a class='aLink' href='/p/%s'>你的评论</a>",
+			message.Content = fmt.Sprintf("<a class='bLink' href='/u/profile/%s'>%s</a>在<a class='bLink' href='/p/%s'>[%s]</a>回复了<a class='bLink' href='/p/%s'>你的评论</a>",
 				userinfo.Username, userinfo.Username, post.Pid, post.Title, post.Pid+"#c-"+parent.CID)
 		}
 
@@ -305,10 +305,10 @@ func QueryPosts(db *gorm.DB, request vo.QueryPostsRequest) gin.H {
 		tx.Where("type = ?", request.Type)
 	}
 	if request.Begin != nil {
-		tx.Where("created_at >= ?", request.Begin)
+		tx.Where("p.created_at >= ?", request.Begin)
 	}
 	if request.End != nil {
-		tx.Where("created_at <= ?", request.End)
+		tx.Where("p.created_at <= ?", request.End)
 	}
 	if request.Domain != "" {
 		tx.Where("domain = ?", request.Domain)
@@ -328,6 +328,9 @@ func QueryPosts(db *gorm.DB, request vo.QueryPostsRequest) gin.H {
 	if len(request.Tags) > 0 {
 		tx.InnerJoins(",tb_post_tag pt,tb_tag t")
 		tx.Where("t.id = pt.tb_tag_id and pt.tb_post_id = p.id and t.name in (?)", request.Tags)
+	} else if request.OrderType == "index" {
+		tx.InnerJoins(",tb_post_tag pt,tb_tag t")
+		tx.Where("t.show_in_hot = 'Y' and t.id = pt.tb_tag_id and pt.tb_post_id = p.id ")
 	}
 
 	var total int64
@@ -335,10 +338,11 @@ func QueryPosts(db *gorm.DB, request vo.QueryPostsRequest) gin.H {
 	tx.Count(&total)
 
 	if request.OrderType == "index" {
-		tx.Where("created_at >= current_date() - interval 7 day")
-		tx.Order("point desc,created_at desc")
+		//tx.InnerJoins("TbTag", "show_in_out = 'Y'")
+		tx.Where("p.created_at >= current_date() - interval 7 day")
+		tx.Order("p.point desc,p.created_at desc")
 	} else {
-		tx.Order("created_at desc")
+		tx.Order("p.created_at desc")
 	}
 
 	var posts []model.TbPost

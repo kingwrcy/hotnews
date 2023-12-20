@@ -52,8 +52,8 @@ func main() {
 	err := db.AutoMigrate(&model.TbMessage{},
 		&model.TbUser{}, &model.TbInviteRecord{},
 		&model.TbPost{}, &model.TbInspectLog{},
-		&model.TbComment{},
-		model.TbVote{})
+		&model.TbComment{}, &model.TbTag{},
+		&model.TbVote{})
 	if err != nil {
 		log.Printf("升级数据库异常,启动失败.%s", err)
 		return

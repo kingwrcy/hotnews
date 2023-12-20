@@ -238,6 +238,7 @@ func (u *UserHandler) Comments(c *gin.Context) {
 	u.db.Model(&model.TbInviteRecord{}).Select("username").Where("invitedUsername = ?", user.Username).First(&invitedUsername)
 	var comments []model.TbComment
 	u.db.Model(&model.TbComment{}).
+		Preload("User").
 		Where("user_id = ? ", user.ID).
 		Order("created_at desc").
 		Find(&comments)

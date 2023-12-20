@@ -9,7 +9,7 @@
     </div>
     <div class="flex flex-col flex-1 ">
         <div class="flex flex-row gap-2 items-center ">
-            <div class="text-sm font-bold text-black hover:text-gray max-w-4/5">
+            <div class="text-sm fw-bold  hover:text-gray max-w-4/5">
                 {{ if eq $post.Type "ask"}}
                     <a href="/p/{{$post.Pid}}">{{$post.Title}}</a>
                 {{else}}
@@ -19,7 +19,7 @@
             </div>
             <div class="flex flex-row gap-1 items-center text-xs">
                 {{range $post.Tags}}
-                <div class=" text-gray border px-1.5 rounded bg-gray-2 b-solid b-coolGray hover:bg-gray-1 cursor-pointer ">
+                <div class=" text-gray border px-1.5 rounded {{.CssClass}} b-solid b-coolGray hover:bg-gray-1 cursor-pointer ">
                     <a href="/t/{{.Name}}">{{.Name}}</a></div>
                 {{end}}
                 {{ if eq $post.Type "ask"}}
@@ -47,7 +47,7 @@
             <div class="when">{{$post.CreatedAt | timeAgo}}</div>
             <div>|</div>
             <div class="cursor-pointer  hover:text-hover">
-                <a href="/p/{{$post.Pid}}">{{if gt $post.CommentCount 0 }}{{$post.CommentCount}}条{{else}}没有{{end}}评论</a>
+                <a href="/p/{{$post.Pid}}">{{if gt $post.CommentCount 0 }}{{$post.CommentCount}}条{{else}}去{{end}}评论</a>
             </div>
         </div>
         {{ if eq $.selected "detail"}}

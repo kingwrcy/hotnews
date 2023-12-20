@@ -1,6 +1,7 @@
 package handler
 
 import (
+	"fmt"
 	"github.com/gin-gonic/gin"
 	"github.com/kingwrcy/hn/model"
 	"github.com/kingwrcy/hn/vo"
@@ -180,18 +181,27 @@ func (i *IndexHandler) Vote(c *gin.Context) {
 
 	var exists int64
 	var targetID uint
+	var message model.TbMessage
+
+	message.FromUserID = 999999999
+	message.CreatedAt = time.Now()
+	message.UpdatedAt = time.Now()
+	message.Read = "N"
+
 	if targetType == "POST" {
 		var item model.TbPost
 		i.db.Model(&model.TbPost{}).Where("pid = ?", id).First(&item)
 		targetID = item.ID
 		if item.UserID == uid {
-			log.Printf("item.UserID == uid ")
 			c.Redirect(302, refer)
 			return
 		}
+		message.ToUserID = item.UserID
+		message.Content = fmt.Sprintf("<a class='bLink' href='/u/profile/%s'>%s</a>给你的主题<a class='bLink' href='/p/%s'>%s</a>点赞了",
+			userinfo.Username, userinfo.Username, item.Pid, item.Title)
 	} else if targetType == "COMMENT" {
 		var item model.TbComment
-		i.db.Model(&model.TbComment{}).Where("cid = ?", id).First(&item)
+		i.db.Model(&model.TbComment{}).Preload("Post").Where("cid = ?", id).First(&item)
 		targetID = item.ID
 		if item.UserID == uid {
 			log.Printf("comment item.UserID == uid ")
@@ -199,6 +209,9 @@ func (i *IndexHandler) Vote(c *gin.Context) {
 			c.Redirect(302, refer)
 			return
 		}
+		message.ToUserID = item.UserID
+		message.Content = fmt.Sprintf("<a class='bLink' href='/u/profile/%s'>%s</a>给你的<a class='bLink' href='/p/%s#c-%s'>评论</a>点赞了",
+			userinfo.Username, userinfo.Username, item.Post.Pid, item.CID)
 	}
 
 	if i.db.Model(&model.TbVote{}).Where("target_id = ? and user_id = ?  and type = ?", targetID, uid, targetType).Count(&exists); exists == 0 {
@@ -227,6 +240,9 @@ func (i *IndexHandler) Vote(c *gin.Context) {
 				if err := tx.Model(&model.TbComment{}).Where("id =?", targetID).Update(col, gorm.Expr(col+"+1")).Error; err != nil {
 					return err
 				}
+			}
+			if err := tx.Save(&message).Error; err != nil {
+				return err
 			}
 			return nil
 		})
@@ -268,11 +284,11 @@ func (i *IndexHandler) SearchByDomain(c *gin.Context) {
 	page := c.DefaultQuery("p", "1")
 
 	c.HTML(200, "index.gohtml", OutputCommonSession(i.db, c, gin.H{
-		"selected": "/",
+		"selected": "history",
 	}, QueryPosts(i.db, vo.QueryPostsRequest{
 		Userinfo:  userinfo,
 		Domain:    domainName,
-		OrderType: "index",
+		OrderType: "",
 		Page:      cast.ToInt64(page),
 		Size:      25,
 	})))

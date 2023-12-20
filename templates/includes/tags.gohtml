@@ -12,7 +12,7 @@
     <div class="flex flex-col gap-2 text-gray text-sm ">
         {{range .Children}}
         <div class="flex flex-row gap-2">
-            <div class="bg-{{.BGColor}} px-2 rounded  cursor-pointer ">
+            <div class="{{.CssClass}} px-2 rounded  cursor-pointer ">
                 <a href="/t/{{.Name}}">{{.Name}}</a>
             </div>
             <div>{{.Desc}}</div>

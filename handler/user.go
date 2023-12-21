@@ -271,6 +271,7 @@ func (u *UserHandler) ToInvited(c *gin.Context) {
 
 	c.HTML(200, "toBeInvited.gohtml", OutputCommonSession(u.db, c, gin.H{
 		"selected": "/",
+		"invited":  invited,
 		"code":     code,
 	}))
 }

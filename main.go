@@ -1,6 +1,7 @@
 package main
 
 import (
+	"embed"
 	"encoding/gob"
 	"errors"
 	"fmt"
@@ -16,6 +17,9 @@ import (
 	"github.com/kingwrcy/hn/vo"
 	"github.com/samber/do"
 	"html/template"
+	"io"
+	"io/fs"
+	"net/http"
 	"path/filepath"
 	"strings"
 	"time"
@@ -40,6 +44,12 @@ func timeAgo(target time.Time) string {
 		return fmt.Sprintf("%d年前", duration/(24*time.Hour*365))
 	}
 }
+
+//go:embed templates
+var templatesFS embed.FS
+
+//go:embed static
+var staticFS embed.FS
 
 func main() {
 	injector := do.New()
@@ -66,8 +76,12 @@ func main() {
 
 	engine.Use(sessions.Sessions("c", store))
 	engine.Use(middleware.CostHandler())
-	engine.HTMLRender = loadTemplates("./templates")
-	engine.Static("/static", "./static")
+
+	ts, _ := fs.Sub(templatesFS, "templates")
+
+	engine.HTMLRender = loadTemplates(ts)
+	s, _ := fs.Sub(staticFS, "static")
+	engine.StaticFS("/static", http.FS(s))
 
 	handler.Setup(injector, engine)
 
@@ -77,14 +91,14 @@ func main() {
 	engine.Run(fmt.Sprintf(":%d", config.Port))
 }
 
-func loadTemplates(templatesDir string) multitemplate.Renderer {
+func loadTemplates(templatesDir fs.FS) multitemplate.Renderer {
 	r := multitemplate.NewRenderer()
-	layouts, err := filepath.Glob(templatesDir + "/layouts/*.gohtml")
+
+	layouts, err := fs.Glob(templatesDir, "layouts/*.gohtml")
 	if err != nil {
 		panic(err.Error())
 	}
-
-	includes, err := filepath.Glob(templatesDir + "/includes/*.gohtml")
+	includes, err := fs.Glob(templatesDir, "includes/*.gohtml")
 	if err != nil {
 		panic(err.Error())
 	}
@@ -94,7 +108,21 @@ func loadTemplates(templatesDir string) multitemplate.Renderer {
 		layoutCopy := make([]string, len(layouts))
 		copy(layoutCopy, layouts)
 		files := append(layoutCopy, include)
-		r.AddFromFilesFuncs(filepath.Base(include), template.FuncMap{
+		templateContents := make([]string, len(files))
+
+		for _, f := range files {
+			open, err := templatesDir.Open(f)
+			if err != nil {
+				panic(err)
+			}
+			buffer, err := io.ReadAll(open)
+			if err != nil {
+				panic(err)
+			}
+			templateContents = append(templateContents, string(buffer))
+			open.Close()
+		}
+		r.AddFromStringsFuncs(filepath.Base(include), template.FuncMap{
 			"StringsJoin": strings.Join,
 			"timeAgo":     timeAgo,
 			"unEscapeHTML": func(content string) template.HTML {
@@ -120,7 +148,7 @@ func loadTemplates(templatesDir string) multitemplate.Renderer {
 				}
 				return dict, nil
 			},
-		}, files...)
+		}, templateContents...)
 	}
 	return r
 }

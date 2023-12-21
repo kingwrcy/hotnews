@@ -5,10 +5,13 @@
     <form action="/invite/{{.code}}" autocomplete="off" method="post">
 
         {{ if and (.msg) }}
-            <div class="text-red">{{.msg}}</div>
+            <div class="text-red  text-sm">{{.msg}}</div>
         {{end}}
 
+
+
         {{ if not .codeIsInvalid}}
+            <div class="my-2 text-sm">用户<a class="aLink" href="/u/profile/{{.invited.Username}}">{{.invited.Username}}</a>邀请你加入社区,请填写以下信息:</div>
             <div class="flex flex-col gap-2 my-4">
                 <div class="flex gap-2">
                     <label class="fw-bold w-[70px]">用户名</label>

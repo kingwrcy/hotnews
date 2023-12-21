@@ -19,7 +19,7 @@
             </div>
             <div class="flex flex-row gap-1 items-center text-xs">
                 {{range $post.Tags}}
-                <div class=" text-gray border px-1.5 rounded {{.CssClass}} b-solid b-coolGray hover:bg-gray-1 cursor-pointer ">
+                <div class=" border px-1.5 rounded {{.CssClass}} b-solid b-coolGray cursor-pointer ">
                     <a href="/t/{{.Name}}">{{.Name}}</a></div>
                 {{end}}
                 {{ if eq $post.Type "ask"}}

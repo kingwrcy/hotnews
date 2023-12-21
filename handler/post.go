@@ -31,10 +31,11 @@ func (p PostHandler) Detail(c *gin.Context) {
 
 	var posts []model.TbPost
 	result := QueryPosts(p.db, vo.QueryPostsRequest{
-		Userinfo: userinfo,
-		Page:     1,
-		Size:     25,
-		PostPID:  cast.ToString(c.Param("pid")),
+		Userinfo:  userinfo,
+		Page:      1,
+		Size:      25,
+		PostPID:   cast.ToString(c.Param("pid")),
+		OrderType: "single",
 	})
 
 	var uid uint = 0
@@ -325,25 +326,20 @@ func QueryPosts(db *gorm.DB, request vo.QueryPostsRequest) gin.H {
 		tx.Select("p.*,IF(vote.target_id IS NOT NULL, 1, 0) AS UpVoted")
 		tx.Joins("LEFT JOIN (?) AS vote ON p.id = vote.target_id", subQuery)
 	}
+	tx.InnerJoins(",tb_post_tag pt,tb_tag t")
+	tx.Where("t.id = pt.tb_tag_id and pt.tb_post_id = p.id")
 	if len(request.Tags) > 0 {
-		tx.InnerJoins(",tb_post_tag pt,tb_tag t")
-		tx.Where("t.id = pt.tb_tag_id and pt.tb_post_id = p.id and t.name in (?)", request.Tags)
+		tx.Where("t.name in (?)", request.Tags)
 	} else if request.OrderType == "index" {
-		tx.InnerJoins(",tb_post_tag pt,tb_tag t")
-		tx.Where("t.show_in_hot = 'Y' and t.id = pt.tb_tag_id and pt.tb_post_id = p.id ")
+		tx.Where("t.show_in_hot = 'Y' and p.created_at >= current_date() - interval 7 day and p.point > 0")
+		tx.Order("p.point desc,p.created_at desc")
+	} else if request.OrderType == "" {
+		tx.Where("t.show_in_all = 'Y'")
+		tx.Order("p.created_at desc")
 	}
 
 	var total int64
-
 	tx.Count(&total)
-
-	if request.OrderType == "index" {
-		//tx.InnerJoins("TbTag", "show_in_out = 'Y'")
-		tx.Where("p.created_at >= current_date() - interval 7 day")
-		tx.Order("p.point desc,p.created_at desc")
-	} else {
-		tx.Order("p.created_at desc")
-	}
 
 	var posts []model.TbPost
 	tx.Preload("Tags").Preload("User").

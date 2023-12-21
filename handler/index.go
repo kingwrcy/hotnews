@@ -63,7 +63,7 @@ func (i *IndexHandler) DoSearch(c *gin.Context) {
 
 func (i *IndexHandler) ToNew(c *gin.Context) {
 	var tags []model.TbTag
-	i.db.Model(&model.TbTag{}).Where("parent_id is null").Preload("Children").Find(&tags)
+	i.db.Model(&model.TbTag{}).Preload("Parent").Where("parent_id is null").Preload("Children").Find(&tags)
 	c.HTML(200, "new.gohtml", OutputCommonSession(i.db, c, gin.H{
 		"selected": "new",
 		"tags":     tags,

@@ -2,22 +2,28 @@
 
 {{define "content"}}
 
-{{range .tags}}
+    {{range .tags}}
 
-    <p class="font-bold text-lg my-4 underline cursor-pointer text-black"
-       style="text-underline-offset: 0.4rem;text-decoration-thickness: 2px;">
-        <a href='/t/p/{{.Name}}'>{{.Name}}</a>
-    </p>
+        <p class="font-bold text-lg my-4 underline cursor-pointer text-black"
+           style="text-underline-offset: 0.4rem;text-decoration-thickness: 2px;">
+            <a href='/t/p/{{.Name}}'>{{.Name}}</a>
+        </p>
 
-    <div class="flex flex-col gap-2 text-gray text-sm ">
-        {{range .Children}}
-        <div class="flex flex-row gap-2">
-            <div class="{{.CssClass}} px-2 rounded  cursor-pointer ">
-                <a href="/t/{{.Name}}">{{.Name}}</a>
-            </div>
-            <div>{{.Desc}}</div>
+        <div class="flex flex-col gap-2 text-gray text-sm ">
+            {{range .Children}}
+                <div class="flex flex-row gap-2">
+                    <div class="{{.CssClass}} px-2 rounded  cursor-pointer  b-solid b-coolGray border">
+                        <a href="/t/{{.Name}}">{{.Name}}</a>
+                    </div>
+                    <div>{{.Desc}}</div>
+                    {{if eq .ShowInHot "N"}}
+                        <div>不会出现在<a href="/" class="bLink">热点</a>栏目内</div>
+                    {{end}}
+                    {{if eq .ShowInAll "N"}}
+                        <div>不会出现在<a href="/" class="bLink">全部</a>栏目内</div>
+                    {{end}}
+                </div>
+            {{end}}
         </div>
-        {{end}}
-    </div>
-{{end}}
+    {{end}}
 {{end}}

@@ -14,6 +14,7 @@ type TbTag struct {
 	Children  []TbTag `gorm:"foreignkey:ParentID"`
 	CssClass  string  `gorm:"column:css_class;type:varchar(120)"`
 	ShowInHot string  `gorm:"column:show_in_hot;type:varchar(5)"`
+	ShowInAll string  `gorm:"column:show_in_all;type:varchar(5)"`
 }
 
 func (*TbTag) TableName() string {

@@ -3,7 +3,7 @@
 
 {{define "content"}}
 <div class="mt-4">
-    <form action="/u/login" method="post">
+    <form action="/u/login" method="post" autocomplete="off">
         <p class="font-bold text-5 mb-4">登录</p>
         <div class="flex flex-col gap-2">
             <div class="flex flex-row items-center">
@@ -12,23 +12,24 @@
                     <input name="username"
                            type="text"
                            class="input"
-                           placeholder="登录名或者电子邮箱"
-                           value="admin"
+                           placeholder="用户名"
+                           autocomplete="new-password"
+                           value=""
                     />
                 </div>
             </div>
             <div class="flex flex-row items-center">
                 <div class="mr-2 text-sm">密码</div>
                 <div>
-                    <input type="password" name="password" class="input" value="a123456"/>
+                    <input type="password" name="password" class="input" value="" autocomplete="new-password"/>
                 </div>
             </div>
             <div class="flex flex-row gap-2 items-center">
-                <button class="btn py-2" type="submit">登录</button>
+                <button class="btn" type="submit">登录</button>
                 <div class="text-red text-sm">{{.msg}}</div>
             </div>
 
-            <p class="text-sm text-gray">忘记密码?去<a class="aLink" href="/resetPwd">重置密码</a></p>
+            <!--<p class="text-sm text-gray">忘记密码?去<a class="aLink" href="/resetPwd">重置密码</a></p>-->
         </div>
     </form>
 </div>

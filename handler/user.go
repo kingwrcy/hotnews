@@ -352,7 +352,7 @@ func (u *UserHandler) DoInvited(c *gin.Context) {
 		inviteRecords = append(inviteRecords, model.TbInviteRecord{
 			Username:  user.Username,
 			Code:      RandStringBytesMaskImpr(10),
-			InvalidAt: time.Now().Add(3 * 24 * time.Hour),
+			InvalidAt: time.Now().Add(30 * 24 * time.Hour),
 			Status:    "ENABLE",
 		})
 	}

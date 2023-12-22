@@ -23,18 +23,9 @@
             });
 
 
-            $("#content").hide()
+            // $("#content").hide()
 
-            $("input[type=radio]").click((e) => {
-                const the = $(e.target)
-                if (the.val() === 'ask') {
-                    $("#content").show()
-                    $("#linkEle").hide()
-                } else if (the.val() === 'link') {
-                    $("#content").hide()
-                    $("#linkEle").show()
-                }
-            })
+
 
             var textarea = document.querySelector('#content>textarea');
             sceditor.create(textarea, {
@@ -43,6 +34,7 @@
                 icons: 'monocons',
                 autofocus: true,
                 locale: 'cn',
+                emoticonsEnabled:false,
                 autoUpdate: true,
                 resizeEnabled: true,
                 resizeWidth: false,
@@ -52,6 +44,17 @@
 
             $("#newPostForm").on("submit", function (event) {
                 textarea.value = sceditor.instance(textarea).fromBBCode(textarea.value)
+            })
+
+            $("input[type=radio]").click((e) => {
+                const the = $(e.target)
+                if (the.val() === 'ask') {
+                    $("#content").show()
+                    $("#linkEle").hide()
+                } else if (the.val() === 'link') {
+                    $("#content").show()
+                    $("#linkEle").show()
+                }
             })
         })
     </script>
@@ -65,6 +68,8 @@
 {{define "content"}}
     <form action="/p/new" method="post" id="newPostForm">
         <div class="mt-2 flex flex-col gap2 text-sm">
+
+
 
             <div class="flex flex-row gap-2 mt-2">
                 <div class="font-bold">类型</div>
@@ -111,7 +116,6 @@
                 <input type="text" id="linkUrl" name="link" class="input flex-1" autocomplete="off"/>
             </div>
             <div class="flex flex-row gap-2 items-center " id="content">
-                <!--            <label for="title" class="font-bold">内容</label>-->
                 <textarea
                         name="content"
                         id=""
@@ -126,7 +130,9 @@
                 <button class="cursor-pointer bg-white border-0 text-black rounded py-2 px-4">清空</button>
             </div>
 
-            <div>{{.msg}}</div>
+            {{if .msg}}
+                <div class="text-red-5">发帖失败:{{.msg}}</div>
+            {{end}}
 
         </div>
     </form>

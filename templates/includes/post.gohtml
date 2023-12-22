@@ -14,33 +14,32 @@
             toolbar: 'horizontalrule,bold,underline,strike,color,bulletlist,orderedlist,code,quote,image,email,link,unlink,table,maximize,removeformat,youtube,date,time',
             format: 'bbcode',
             icons: 'monocons',
-            emoticonsEnabled: false,
+            emoticonsEnabled:false,
             autofocus: true,
             locale: 'cn',
             resizeEnabled: true,
             resizeWidth: false,
-            height:"120px",
-            {{if not $.login}}readOnly:true,{{end}}
-            resizeMinHeight:100,
+            height: "120px",
+            {{if not $.login}}readOnly: true,{{end}}
+            resizeMinHeight: 100,
             plugins: 'plaintext,undo,autoyoutube',
             style: '/static/sceditor/themes/content/default.min.css'
         });
 
         $("#comment_form").on("submit", function (event) {
-            textarea.value = sceditor.instance(textarea).fromBBCode(textarea.value).replaceAll("<br /><br /></div>","</div>")
+            textarea.value = sceditor.instance(textarea).fromBBCode(textarea.value).replaceAll("<br /><br /></div>", "</div>")
         })
 
-        $(document.body).delegate(".reply-form","submit",function (){
+        $(document.body).delegate(".reply-form", "submit", function () {
             const cid = $(this).data("cid");
             const commentTextarea = document.getElementById(`comment-${cid}`);
-            commentTextarea.value = sceditor.instance(commentTextarea).fromBBCode(commentTextarea.value).replaceAll("<br /><br /></div>","</div>")
+            commentTextarea.value = sceditor.instance(commentTextarea).fromBBCode(commentTextarea.value).replaceAll("<br /><br /></div>", "</div>")
         });
 
         $(".reply").click(function () {
             const cid = $(this).data('cid')
             $(this).parents(`#c-${cid}`).find(".form-parent").first().toggle()
             const commentTextarea = document.getElementById(`comment-${cid}`);
-            console.log(commentTextarea)
             const instance = sceditor.instance(commentTextarea)
             if (instance) {
                 instance.destroy()
@@ -50,7 +49,7 @@
                 toolbar: 'horizontalrule,bold,underline,strike,color,bulletlist,orderedlist,code,quote,image,email,link,unlink,table,maximize,removeformat,youtube,date,time',
                 format: 'bbcode',
                 icons: 'monocons',
-                emoticonsEnabled: false,
+                emoticonsEnabled:false,
                 autofocus: true,
                 locale: 'cn',
                 resizeEnabled: true,
@@ -80,5 +79,5 @@
 </style>
 {{ end }}
 {{define "content"}}
-{{template "post" .}}
+    {{template "post" .}}
 {{end}}

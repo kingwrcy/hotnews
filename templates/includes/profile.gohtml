@@ -66,7 +66,7 @@
                                         于 {{.UpdatedAt | timeAgo}} 使用
                                 {{else}}
                                     <a class="aLink" target="_blank" href="/invite/{{.Code}}">{{.Code}}</a>
-                                    <div class="cursor-pointer text-xs hover:text-green-5" onclick="copyCode(this,'{{.Code}}')">复制链接</div>
+                                    <div class="cursor-pointer hover:text-green-5" onclick="copyCode(this,'{{.Code}}')">复制链接</div>
                                 {{end}}
                             </div>
                         {{end}}

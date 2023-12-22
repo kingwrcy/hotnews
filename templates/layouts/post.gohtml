@@ -1,40 +1,45 @@
 {{define "post"}}
-{{range  $index, $post := .posts}}
-<div class="flex flex-row gap-4 mt-2 flex-1 items-start">
-    <div class="flex flex-col items-center cursor-pointer upVoteParent ">
-        <a class="text-coolGray  {{if $post.UpVoted}}text-red{{end}}" href="{{if $post.UpVoted}}javascript:void(0);{{else}}/vote?id={{$post.Pid}}&action=u&type=POST{{end}}" >
-            <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24"><path fill="currentColor" d="M1 21h22L12 2"/></svg>
-        </a>
-        <div class="text-sm text-coolGray upVote">{{$post.UpVote}}</div>
-    </div>
-    <div class="flex flex-col flex-1 ">
-        <div class="flex flex-row gap-2 items-center ">
-            <div class=" hover:text-gray max-w-4/5">
-                {{ if eq $post.Type "ask"}}
-                    <a href="/p/{{$post.Pid}}">{{$post.Title}}</a>
-                {{else}}
-                    <a href="{{$post.Link}}" target="_blank">{{$post.Title}}</a>
-                {{end}}
 
-            </div>
-            <div class="flex flex-row gap-1 items-center text-xs">
-                {{range $post.Tags}}
-                <div class=" border px-1.5 rounded {{.CssClass}} b-solid b-coolGray cursor-pointer ">
-                    <a href="/t/{{.Name}}">{{.Name}}</a></div>
-                {{end}}
-                {{ if eq $post.Type "ask"}}
-                <div class=" border px-1.5 rounded bg-gray-2 b-solid  cursor-pointer ask bg-red text-white">
-                    <a href="/type/ask" >讨论</a>
+    <div class="flex flex-col ">
+        {{range  $index, $post := .posts}}
+            <div class="flex flex-row gap-4 flex-1 items-start p-1">
+                <div class="flex flex-col items-center cursor-pointer upVoteParent ">
+                    <a class="text-coolGray  {{if $post.UpVoted}}text-red{{end}}"
+                       href="{{if $post.UpVoted}}javascript:void(0);{{else}}/vote?id={{$post.Pid}}&action=u&type=POST{{end}}">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24">
+                            <path fill="currentColor" d="M1 21h22L12 2"/>
+                        </svg>
+                    </a>
+                    <div class="text-sm text-coolGray upVote">{{$post.UpVote}}</div>
                 </div>
-                {{end}}
-                <div class="text-gray ">
-                    <a href="/d/{{$post.Domain}}" class="hover:text-hover">{{$post.Domain}}</a>
-                </div>
-            </div>
-        </div>
+                <div class="flex flex-col flex-1 ">
+                    <div class="flex flex-row gap-2 items-center ">
+                        <div class=" hover:text-gray max-w-4/5">
+                            {{ if eq $post.Type "ask"}}
+                                <a href="/p/{{$post.Pid}}">{{$post.Title}}</a>
+                            {{else}}
+                                <a href="{{$post.Link}}" target="_blank">{{$post.Title}}</a>
+                            {{end}}
 
-        <div class="flex flex-row gap2 items-center text-xs text-gray">
-     <!--       <div class="avatar">
+                        </div>
+                        <div class="flex flex-row gap-1 items-center text-xs">
+                            {{range $post.Tags}}
+                                <div class=" border px-1.5 rounded {{.CssClass}} b-solid b-coolGray cursor-pointer ">
+                                    <a href="/t/{{.Name}}">{{.Name}}</a></div>
+                            {{end}}
+                            {{ if eq $post.Type "ask"}}
+                                <div class=" border px-1.5 rounded bg-gray-2 b-solid  cursor-pointer ask bg-red text-white">
+                                    <a href="/type/ask">讨论</a>
+                                </div>
+                            {{end}}
+                            <div class="text-gray ">
+                                <a href="/d/{{$post.Domain}}" class="hover:text-hover">{{$post.Domain}}</a>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="flex flex-row gap2 items-center text-xs text-gray">
+                        <!--       <div class="avatar">
                 <a href="/u/profile/{{$post.User.Username}}"
                 >
                     <img class="w-5 h-5 rounded" src="https://i.pravatar.cc/30?u={{$post.User.Email}}" alt=""
@@ -43,24 +48,26 @@
                 </a>
             </div>
             -->
-            <div ><a class="cursor-pointer  hover:text-hover" href="/u/profile/{{$post.User.Username}}">{{$post.User.Username}}</a></div>
-            <div class="when">{{$post.CreatedAt | timeAgo}}</div>
-            <div>|</div>
-            <div class="cursor-pointer  hover:text-hover">
-                <a href="/p/{{$post.Pid}}">{{if gt $post.CommentCount 0 }}{{$post.CommentCount}}条{{else}}去{{end}}评论</a>
-            </div>
-        </div>
-        {{ if eq $.selected "detail"}}
-        <div class="mt-2 content" >
-            {{$post.Content | unEscapeHTML}}
-        </div>
-        {{end}}
-        {{ if eq $.selected "detail" }}
-        <form method="post" action="/p/comment" id="comment_form">
-            <input type="hidden" name="post_pid" value="{{$post.Pid}}">
-            <input type="hidden" name="post_id" value="{{$post.ID}}">
-            <input type="hidden" name="parent_comment_id" value="">
-            <div class="flex flex-col gap-2 mt-4">
+                        <div><a class="cursor-pointer  hover:text-hover"
+                                href="/u/profile/{{$post.User.Username}}">{{$post.User.Username}}</a></div>
+                        <div class="when">{{$post.CreatedAt | timeAgo}}</div>
+                        <div>|</div>
+                        <div class="cursor-pointer  hover:text-hover">
+                            <a href="/p/{{$post.Pid}}">{{if gt $post.CommentCount 0 }}{{$post.CommentCount}}条{{else}}去{{end}}评论</a>
+                        </div>
+                    </div>
+                    {{ if eq $.selected "detail"}}
+                        <div class="mt-2 content">
+                            {{$post.Content | unEscapeHTML}}
+                        </div>
+                    {{end}}
+
+                    {{ if eq $.selected "detail" }}
+                        <form method="post" action="/p/comment" id="comment_form">
+                            <input type="hidden" name="post_pid" value="{{$post.Pid}}">
+                            <input type="hidden" name="post_id" value="{{$post.ID}}">
+                            <input type="hidden" name="parent_comment_id" value="">
+                            <div class="flex flex-col gap-2 mt-4">
     <textarea
             name="content"
             id="comment"
@@ -69,46 +76,49 @@
             class="input"
     >{{if not $.login}}先登录才能发表评论{{end}}</textarea>
 
-                <div class="flex flex-row gap2 mt-2">
-                    {{if $.login}}
-                        <button class="btn" type="submit">发表评论</button>
-                    {{else}}
-                    <a href="/u/login?redirect=/p/{{$post.Pid}}" class="text-sm hover:text-hover underline fw700">去登录发表评论</a>
+                                <div class="flex flex-row gap2 mt-2">
+                                    {{if $.login}}
+                                        <button class="btn" type="submit">发表评论</button>
+                                    {{else}}
+                                        <a href="/u/login?redirect=/p/{{$post.Pid}}"
+                                           class="text-sm hover:text-hover underline fw700">去登录发表评论</a>
+                                    {{end}}
+                                </div>
+
+                            </div>
+                        </form>
+
+                    {{end}}
+
+
+                    {{if and (gt (len $post.Comments) 0) (not (eq $.selected "mine"))}}
+                        <div id="comment-tree" class="mt-4 relative">
+                            {{range $post.Comments}}
+                                {{template "comment" dict "Comment" . "Post" $post "Login" $.login}}
+                            {{end}}
+                        </div>
                     {{end}}
                 </div>
-
             </div>
-        </form>
-
-        {{end}}
-
-
-        {{if and (gt (len $post.Comments) 0) (not (eq $.selected "mine"))}}
-        <div id="comment-tree" class="mt-4 relative">
-            {{range $post.Comments}}
-                {{template "comment" dict "Comment" . "Post" $post "Login" $.login}}
+            {{ if eq $.selected "approve"}}
+                <form action="/inspect" method="post">
+                    <div class="flex flex-col gap2 mt-2 text-xs" id="approve-form" data-post-id="{{$post.ID}}">
+                        <input name="post_id" type="hidden" value="{{$post.ID}}">
+                        <input name="inspect_type" type="hidden" value="POST">
+                        <div class="flex flex-row gap-1  items-center">
+                            <input type="radio" value="pass" id="pass-{{$index}}" data-index="{{$index}}" name="result">
+                            <label for="pass-{{$index}}">通过</label>
+                            <input type="radio" class="ml-2" value="reject" id="reject-{{$index}}"
+                                   data-index="{{$index}}" name="result">
+                            <label for="reject-{{$index}}">拒绝</label>
+                            <button class="btn text-xs ml-2" type="submit">审核</button>
+                        </div>
+                        <div class="hidden" id="reason-{{$index}}">
+                            <textarea name="reason" class="input w-full" placeholder="填写拒绝理由"></textarea>
+                        </div>
+                    </div>
+                </form>
             {{end}}
-        </div>
         {{end}}
     </div>
-</div>
-{{ if eq $.selected "approve"}}
-<form action="/inspect" method="post">
-    <div class="flex flex-col gap2 mt-2 text-xs" id="approve-form" data-post-id="{{$post.ID}}" >
-        <input name="post_id" type="hidden" value="{{$post.ID}}">
-        <input name="inspect_type" type="hidden" value="POST">
-        <div class="flex flex-row gap-1  items-center">
-            <input type="radio" value="pass" id="pass-{{$index}}" data-index="{{$index}}" name="result">
-            <label for="pass-{{$index}}">通过</label>
-            <input type="radio" class="ml-2" value="reject" id="reject-{{$index}}" data-index="{{$index}}" name="result">
-            <label for="reject-{{$index}}">拒绝</label>
-            <button class="btn text-xs ml-2" type="submit">审核</button>
-        </div>
-        <div class="hidden" id="reason-{{$index}}">
-            <textarea name="reason" class="input w-full" placeholder="填写拒绝理由"></textarea>
-        </div>
-    </div>
-</form>
-{{end}}
-{{end}}
 {{end}}

@@ -91,12 +91,15 @@ func (p PostHandler) Add(c *gin.Context) {
 		return
 	}
 	uid := userinfo.ID
+	var tempTags []model.TbTag
+	p.db.Model(&model.TbTag{}).Preload("Parent").Where("parent_id is null").Preload("Children").Find(&tempTags)
 
 	var request vo.NewPostRequest
 	if err := c.Bind(&request); err != nil {
 		c.HTML(200, "new.gohtml", OutputCommonSession(p.db, c, gin.H{
 			"msg":      "参数异常",
 			"selected": "new",
+			"tags":     tempTags,
 		}))
 		return
 	}
@@ -105,6 +108,7 @@ func (p PostHandler) Add(c *gin.Context) {
 		c.HTML(200, "new.gohtml", OutputCommonSession(p.db, c, gin.H{
 			"msg":      "标签最少1个,最多5个",
 			"selected": "new",
+			"tags":     tempTags,
 		}))
 		return
 	}
@@ -112,10 +116,18 @@ func (p PostHandler) Add(c *gin.Context) {
 		c.HTML(200, "new.gohtml", OutputCommonSession(p.db, c, gin.H{
 			"msg":      "类型必填",
 			"selected": "new",
+			"tags":     tempTags,
 		}))
 		return
 	}
-
+	if request.Type == "link" && request.Link == "" {
+		c.HTML(200, "new.gohtml", OutputCommonSession(p.db, c, gin.H{
+			"msg":      "分享类的链接是必填项",
+			"selected": "new",
+			"tags":     tempTags,
+		}))
+		return
+	}
 	var tags []model.TbTag
 	for _, v := range request.TagIDs {
 		tags = append(tags, model.TbTag{

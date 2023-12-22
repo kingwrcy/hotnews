@@ -361,7 +361,6 @@ func (u *UserHandler) DoInvited(c *gin.Context) {
 		if err != nil {
 			return err
 		}
-		log.Printf("succ")
 		err = tx.Model(&invited).Where("id=?", invited.ID).Updates(model.TbInviteRecord{
 			InvitedUsername:  request.Username,
 			InvitedUserEmail: request.Email,

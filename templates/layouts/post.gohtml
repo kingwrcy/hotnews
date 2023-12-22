@@ -9,7 +9,7 @@
     </div>
     <div class="flex flex-col flex-1 ">
         <div class="flex flex-row gap-2 items-center ">
-            <div class="text-sm fw-bold  hover:text-gray max-w-4/5">
+            <div class=" hover:text-gray max-w-4/5">
                 {{ if eq $post.Type "ask"}}
                     <a href="/p/{{$post.Pid}}">{{$post.Title}}</a>
                 {{else}}
@@ -51,7 +51,7 @@
             </div>
         </div>
         {{ if eq $.selected "detail"}}
-        <div class="mt-2 text-sm content" >
+        <div class="mt-2 content" >
             {{$post.Content | unEscapeHTML}}
         </div>
         {{end}}

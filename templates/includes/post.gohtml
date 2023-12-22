@@ -1,14 +1,17 @@
 {{ define "title"}}<title>{{(index .posts 0).Title}}</title>
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sceditor@latest/minified/themes/default.min.css"/>
-<script src="https://cdn.jsdelivr.net/combine/npm/sceditor@latest/minified/sceditor.min.js,npm/sceditor@latest/minified/formats/bbcode.min.js,npm/sceditor@latest/minified/icons/monocons.min.js"></script>
-<script src="https://cdn.jsdelivr.net/combine/npm/sceditor@latest/languages/cn.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/sceditor@latest/minified/plugins/plaintext.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/sceditor@latest/minified/plugins/undo.js"></script>
+<link rel="stylesheet" href="/static/sceditor/themes/default.min.css"/>
+<script src="/static/sceditor/sceditor.min.js"></script>
+<script src="/static/sceditor/formats/bbcode.js"></script>
+<script src="/static/sceditor/icons/monocons.js"></script>
+<script src="/static/sceditor/language/cn.js"></script>
+<script src="/static/sceditor/plugins/plaintext.js"></script>
+<script src="/static/sceditor/plugins/undo.js"></script>
+<script src="/static/sceditor/plugins/autoyoutube.js"></script>
 <script>
     $(function () {
         const textarea = document.getElementById('comment');
         sceditor.create(textarea, {
-            toolbar: 'bold,underline,color,bulletlist,orderedlist,code,quote,image,email,link,unlink,maximize,removeformat',
+            toolbar: 'horizontalrule,bold,underline,strike,color,bulletlist,orderedlist,code,quote,image,email,link,unlink,table,maximize,removeformat,youtube,date,time',
             format: 'bbcode',
             icons: 'monocons',
             emoticonsEnabled: false,
@@ -17,10 +20,10 @@
             resizeEnabled: true,
             resizeWidth: false,
             height:"120px",
-        {{if not $.login}}readOnly:true,{{end}}
+            {{if not $.login}}readOnly:true,{{end}}
             resizeMinHeight:100,
-            plugins: 'plaintext,undo',
-            style: 'https://cdn.jsdelivr.net/npm/sceditor@latest/minified/themes/content/default.min.css'
+            plugins: 'plaintext,undo,autoyoutube',
+            style: '/static/sceditor/themes/content/default.min.css'
         });
 
         $("#comment_form").on("submit", function (event) {
@@ -44,7 +47,7 @@
                 return
             }
             sceditor.create(commentTextarea, {
-                toolbar: 'bold,underline,color,bulletlist,orderedlist,code,quote,image,email,link,unlink,maximize,removeformat',
+                toolbar: 'horizontalrule,bold,underline,strike,color,bulletlist,orderedlist,code,quote,image,email,link,unlink,table,maximize,removeformat,youtube,date,time',
                 format: 'bbcode',
                 icons: 'monocons',
                 emoticonsEnabled: false,
@@ -52,8 +55,8 @@
                 locale: 'cn',
                 resizeEnabled: true,
                 resizeWidth: false,
-                plugins: 'plaintext,undo',
-                style: 'https://cdn.jsdelivr.net/npm/sceditor@latest/minified/themes/content/default.min.css'
+                plugins: 'plaintext,undo,autoyoutube',
+                style: '/static/sceditor/themes/content/default.min.css'
             });
             sceditor.instance(commentTextarea).focus()
         })

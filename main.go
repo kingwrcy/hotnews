@@ -20,6 +20,7 @@ import (
 	"io"
 	"io/fs"
 	"net/http"
+	"os"
 	"path/filepath"
 	"strings"
 	"time"
@@ -77,11 +78,15 @@ func main() {
 	engine.Use(sessions.Sessions("c", store))
 	engine.Use(middleware.CostHandler())
 
-	ts, _ := fs.Sub(templatesFS, "templates")
-
-	engine.HTMLRender = loadTemplates(ts)
-	s, _ := fs.Sub(staticFS, "static")
-	engine.StaticFS("/static", http.FS(s))
+	if os.Getenv("GIN_MODE") == "release" {
+		ts, _ := fs.Sub(templatesFS, "templates")
+		engine.HTMLRender = loadTemplates(ts)
+		s, _ := fs.Sub(staticFS, "static")
+		engine.StaticFS("/static", http.FS(s))
+	} else {
+		engine.HTMLRender = loadLocalTemplates("./templates")
+		engine.Static("/static", "./static")
+	}
 
 	handler.Setup(injector, engine)
 
@@ -89,6 +94,54 @@ func main() {
 
 	log.Printf("启动http服务,端口:%d,监听请求中...", config.Port)
 	engine.Run(fmt.Sprintf(":%d", config.Port))
+}
+
+func loadLocalTemplates(templatesDir string) multitemplate.Renderer {
+	r := multitemplate.NewRenderer()
+
+	layouts, err := filepath.Glob(templatesDir + "/layouts/*.gohtml")
+	if err != nil {
+		panic(err.Error())
+	}
+	includes, err := filepath.Glob(templatesDir + "/includes/*.gohtml")
+	if err != nil {
+		panic(err.Error())
+	}
+
+	for _, include := range includes {
+		layoutCopy := make([]string, len(layouts))
+		copy(layoutCopy, layouts)
+		files := append(layoutCopy, include)
+
+		r.AddFromFilesFuncs(filepath.Base(include), template.FuncMap{
+			"StringsJoin": strings.Join,
+			"timeAgo":     timeAgo,
+			"unEscapeHTML": func(content string) template.HTML {
+				return template.HTML(content)
+			},
+			"add": func(a, b int) int {
+				return a + b
+			},
+			"sub": func(a, b int) int {
+				return a - b
+			},
+			"dict": func(values ...interface{}) (map[string]interface{}, error) {
+				if len(values)%2 != 0 {
+					return nil, errors.New("invalid dict call")
+				}
+				dict := make(map[string]interface{}, len(values)/2)
+				for i := 0; i < len(values); i += 2 {
+					key, ok := values[i].(string)
+					if !ok {
+						return nil, errors.New("dict keys must be strings")
+					}
+					dict[key] = values[i+1]
+				}
+				return dict, nil
+			},
+		}, files...)
+	}
+	return r
 }
 
 func loadTemplates(templatesDir fs.FS) multitemplate.Renderer {

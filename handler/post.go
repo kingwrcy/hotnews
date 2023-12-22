@@ -338,32 +338,34 @@ func QueryPosts(db *gorm.DB, request vo.QueryPostsRequest) gin.H {
 		tx.Select("p.*,IF(vote.target_id IS NOT NULL, 1, 0) AS UpVoted")
 		tx.Joins("LEFT JOIN (?) AS vote ON p.id = vote.target_id", subQuery)
 	}
-	tx.InnerJoins(",tb_post_tag pt,tb_tag t")
-	tx.Where("t.id = pt.tb_tag_id and pt.tb_post_id = p.id")
 	if len(request.Tags) > 0 {
+		tx.InnerJoins(",tb_post_tag pt,tb_tag t")
+		tx.Where("t.id = pt.tb_tag_id and pt.tb_post_id = p.id")
 		tx.Where("t.name in (?)", request.Tags)
 	} else if request.OrderType == "index" {
-		tx.Where("t.show_in_hot = 'Y' and p.created_at >= current_date() - interval 7 day and p.point > 0")
+		tx.Where("not exists (select 1 from tb_post_tag pt,tb_tag t where t.id = pt.tb_tag_id and pt.tb_post_id = p.id and t.show_in_hot = 'N')")
+		tx.Where("p.created_at >= current_date() - interval 7 day and p.point > 0")
 		tx.Order("p.point desc,p.created_at desc")
 	} else if request.OrderType == "" {
-		tx.Where("t.show_in_all = 'Y'")
+		tx.Where("not exists (select 1 from tb_post_tag pt,tb_tag t where t.id = pt.tb_tag_id and pt.tb_post_id = p.id and t.show_in_all = 'N')")
 		tx.Order("p.created_at desc")
 	}
 
 	var total int64
-	tx.Count(&total)
+	tx.Distinct("p.id").Count(&total)
 
 	var posts []model.TbPost
-	tx.Preload("Tags").Preload("User").
+	tx.Select("p.*").Preload("Tags").Preload("User").
 		Limit(int(request.Size)).
 		Offset(int((request.Page - 1) * request.Size)).
 		Find(&posts)
 
 	totalPage := total / request.Size
+
 	if total%request.Size > 0 {
 		totalPage = totalPage + 1
 	}
-	log.Printf("page :%d , %d , %d", request.Page, totalPage, request.Size)
+	log.Printf("page :%d, %d , %d , %d", total, request.Page, totalPage, request.Size)
 	return gin.H{
 		"posts":       posts,
 		"totalPage":   totalPage,

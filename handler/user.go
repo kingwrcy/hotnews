@@ -361,13 +361,15 @@ func (u *UserHandler) DoInvited(c *gin.Context) {
 		if err != nil {
 			return err
 		}
-		err = tx.Model(&invited).Where("id=?", invited.ID).Updates(model.TbInviteRecord{
-			InvitedUsername:  request.Username,
-			InvitedUserEmail: request.Email,
-			Status:           "DISABLE",
-		}).Error
-		if err != nil {
-			return err
+		if code != "hotnews" {
+			err = tx.Model(&invited).Where("id=?", invited.ID).Updates(model.TbInviteRecord{
+				InvitedUsername:  request.Username,
+				InvitedUserEmail: request.Email,
+				Status:           "DISABLE",
+			}).Error
+			if err != nil {
+				return err
+			}
 		}
 		err = tx.Save(&inviteRecords).Error
 		if err != nil {

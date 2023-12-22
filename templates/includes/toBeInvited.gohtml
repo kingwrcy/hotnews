@@ -11,7 +11,11 @@
 
 
         {{ if not .codeIsInvalid}}
-            <div class="my-2 text-sm">用户<a class="aLink" href="/u/profile/{{.invited.Username}}">{{.invited.Username}}</a>邀请你加入社区,请填写以下信息:</div>
+            {{if not (eq .invited.Username "hotnews")}}
+                <div class="my-2 text-sm">用户<a class="aLink"
+                                                 href="/u/profile/{{.invited.Username}}">{{.invited.Username}}</a>邀请你加入社区,请填写以下信息:
+                </div>
+            {{end}}
             <div class="flex flex-col gap-2 my-4">
                 <div class="flex gap-2">
                     <label class="fw-bold w-[70px]">用户名</label>
@@ -22,21 +26,21 @@
                 <div class="flex gap-2">
                     <label class="fw-bold w-[70px]">邮箱</label>
                     <div>
-                        <input type="text" name="email" class="input" autocomplete="new-password" >
+                        <input type="text" name="email" class="input" autocomplete="new-password">
                     </div>
                 </div>
                 <div class="flex gap-2">
                     <label class="fw-bold w-[70px]">密码</label>
                     <div>
                         <input type="password" name="password" class="input" autocomplete="new-password"
-                              >
+                        >
                     </div>
                 </div>
                 <div class="flex gap-2">
                     <label class="fw-bold w-[70px]">重复密码</label>
                     <div>
                         <input type="password" name="repeatPassword" class="input" autocomplete="new-password"
-                              >
+                        >
                     </div>
                 </div>
                 <div class="flex gap-2">

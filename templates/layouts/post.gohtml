@@ -14,7 +14,7 @@
                 </div>
                 <div class="flex flex-col flex-1 ">
                     <div class="flex flex-row gap-2 items-center ">
-                        <div class="text-sm {{if eq $.selected "detail"}}fw-bold{{end}} hover:text-gray max-w-4/5 text-[#06c] fw-bold">
+                        <div class="text-sm {{if eq $.selected "detail"}}fw-bold{{end}} hover:text-gray lg:max-w-4/5 text-[#06c] fw-bold">
                             {{ if eq $post.Type "ask"}}
                                 <a href="/p/{{$post.Pid}}">{{$post.Title}}</a>
                             {{else}}
@@ -22,7 +22,7 @@
                             {{end}}
 
                         </div>
-                        <div class="flex flex-row gap-1 items-center text-xs">
+                        <div class="lg:flex flex-row gap-1 items-center text-xs hidden">
                             {{range $post.Tags}}
                                 <div class=" border px-1.5 rounded {{.CssClass}} b-solid b-coolGray cursor-pointer ">
                                     <a href="/t/{{.Name}}">{{.Name}}</a></div>
@@ -37,7 +37,20 @@
                             </div>
                         </div>
                     </div>
-
+                    <div class="flex flex-row gap-1 items-center text-xs lg:hidden my-1">
+                        {{range $post.Tags}}
+                            <div class=" border px-1.5 rounded {{.CssClass}} b-solid b-coolGray cursor-pointer ">
+                                <a href="/t/{{.Name}}">{{.Name}}</a></div>
+                        {{end}}
+                        {{ if eq $post.Type "ask"}}
+                            <div class=" border px-1.5 rounded bg-gray-2 b-solid  cursor-pointer ask bg-red text-white">
+                                <a href="/type/ask">讨论</a>
+                            </div>
+                        {{end}}
+                        <div class="text-gray ">
+                            <a href="/d/{{$post.Domain}}" class="hover:text-hover">{{$post.Domain}}</a>
+                        </div>
+                    </div>
                     <div class="flex flex-row gap2 items-center text-xs text-gray">
                         <!--       <div class="avatar">
                 <a href="/u/profile/{{$post.User.Username}}"

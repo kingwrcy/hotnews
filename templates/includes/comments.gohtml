@@ -14,7 +14,7 @@
             </a>
             <div class="text-sm text-coolGray">{{.UpVote}}</div>
         </div>
-        <div class="flex flex-col">
+        <div class="flex flex-col flex-1">
             <div class="flex flex-row gap-2 text-gray text-xs">
 
               <!--  <div class="avatar">
@@ -31,7 +31,7 @@
                 <a class="hover:text-hover max-w-4/5" href="/p/{{.Post.Pid}}">回复 : {{.Post.Title}}</a>
 
             </div>
-            <div class="content">
+            <div class="content text-sm">
                 {{.Content | unEscapeHTML}}
             </div>
         </div>

@@ -1,5 +1,5 @@
 {{define "header"}}
-<div class="flex flex-row items-center gap2 fw-700 text-fg text-sm mb-4 header pb-1 " style="border-bottom: 1px solid #eee">
+<div class="flex flex-row items-center gap2 fw-700 text-fg text-sm mb-4 header pb-1 flex-nowrap" style="border-bottom: 1px solid #eee ">
     <div class="" style="width: 20px; height: 20px">
         <svg
                 class="text-blue-7"
@@ -18,8 +18,8 @@
     <div class='hover:text-hover {{if eq .selected "history"}}selected{{end}}'><a href="/history">全部</a></div>
     <div class='hover:text-hover {{if eq .selected "comment"}}selected{{end}}'><a href="/comments">评论</a></div>
     <div class='hover:text-hover {{if eq .selected "tags"}}selected{{end}} '><a href="/tags">标签</a></div>
-    <div class='hover:text-hover {{if eq .selected "search"}}selected{{end}}'><a href="/search">搜索</a></div>
-    <div class="flex flex-row items-center ml-auto gap2 ">
+    <div class='mhover:text-hover {{if eq .selected "search"}}selected{{end}}'><a href="/search">搜索</a></div>
+    <div class="flex flex-row items-center ml-auto gap-2 lt-md:hidden">
         {{ if eq .login true}}
         {{ if or (eq .userinfo.Role "admin") (eq .userinfo.Role "inspector")}}
             {{if and (.waitApproved) (gt .waitApproved 0)}}
@@ -36,5 +36,29 @@
           <div class='hover:text-hover {{if eq .selected "login"}}selected{{end}}'><a href="/u/login">登录</a></div>
         {{ end }}
     </div>
+
+    <div class="flex flex-row items-center ml-auto gap-2 md:hidden" >
+        <div id="showSidebar">侧栏</div>
+    </div>
 </div>
+
+    <div class="absolute md:hidden top-0  right-0 p-2 h-full bg-gray-1 hidden z-50" id="sidebar">
+        <div class="flex flex-col items-start ml-auto gap-2 px-4">
+            {{ if eq .login true}}
+                {{ if or (eq .userinfo.Role "admin") (eq .userinfo.Role "inspector")}}
+                    {{if and (.waitApproved) (gt .waitApproved 0)}}
+                        <div class='hover:text-hover {{if eq .selected "approve"}}selected{{end}} {{if and (.waitApproved) (gt .waitApproved 0)}}text-red{{end}}'><a href="/wait">
+                                待审核({{.waitApproved}})
+                            </a></div>
+                    {{end}}
+                {{end}}
+                <div class='hover:text-hover {{if eq .selected "new"}}selected{{end}}'><a href="/new">提交</a></div>
+                <div class='hover:text-hover {{if eq .selected "mine"}}selected{{end}}'><a href="/u/profile/{{.userinfo.Username}}">{{.userinfo.Username}}</a></div>
+                <div class='hover:text-hover {{if eq .selected "message"}}selected{{end}} {{if gt .unReadMessageCount 0}}text-red{{end}}'><a href="/u/message">消息({{.unReadMessageCount}})</a></div>
+                <div class="hover:text-hover"><a href="/u/logout">登出</a></div>
+            {{else}}
+                <div class='hover:text-hover {{if eq .selected "login"}}selected{{end}}'><a href="/u/login">登录</a></div>
+            {{ end }}
+        </div>
+    </div>
 {{end}}

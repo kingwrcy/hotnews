@@ -8,4 +8,17 @@ $(function () {
             $(`#reason-${index}`).hide()
         }
     })
+
+    const $sidebar = $("#sidebar");
+    $("#showSidebar").click((e)=>{
+        $sidebar.show().fadeIn()
+        e.stopPropagation()
+    })
+
+    $(document.body).click(()=>{
+        console.log($sidebar.css('display'))
+      if ($sidebar.css('display') === 'block'){
+          $sidebar.hide().fadeOut()
+      }
+    })
 })

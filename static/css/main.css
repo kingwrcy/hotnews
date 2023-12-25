@@ -1,6 +1,7 @@
 html, body {
     /*font-family: "LXGW WenKai Screen",Helvetica, Tahoma, Arial, "Microsoft YaHei", "Hiragino Sans GB", "WenQuanYi Micro Hei", sans-serif;*/
     font-family: "Comic Sans MS", "Luxi Sans", "Segoe UI", "Hiragino Sans GB", "Microsoft Yahei", sans-serif, "Apple Logo";
+    height: 100%;
 }
 iframe[data-youtube-id]{width:100% !important;min-height:400px;}
 html.dark {

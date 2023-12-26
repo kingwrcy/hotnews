@@ -1,7 +1,12 @@
-{{ define "title"}}<title>标签</title>{{ end }}
+{{ define "title"}}
+    <title>标签</title>
+
+{{ end }}
 
 {{define "content"}}
-
+    {{if and (not (eq $.userinfo nil)) (eq $.userinfo.Role "admin")}}
+        <a href="/tags/add" class="btn">新增标签</a>
+    {{end}}
     {{range .tags}}
 
         <p class="font-bold text-lg my-4 underline cursor-pointer text-black"
@@ -11,16 +16,22 @@
 
         <div class="flex flex-col gap-2 text-gray text-sm ">
             {{range .Children}}
-                <div class="flex flex-row gap-2">
-                    <div class="{{.CssClass}} px-2 rounded  cursor-pointer  b-solid b-coolGray border">
+                <div class="flex flex-row gap-2 items-center">
+                    <div class="{{.CssClass}} px-2 rounded  cursor-pointer  b-solid b-coolGray border"
+                         data-name-id="{{.ID}}">
                         <a href="/t/{{.Name}}">{{.Name}} </a>
                     </div>
-                    <div>{{.Desc}}</div>
+                    <div data-desc-id="{{.ID}}">{{.Desc}}</div>
                     {{if eq .ShowInHot "N"}}
                         <div>不会出现在<a href="/" class="bLink">热点</a>栏目内</div>
                     {{end}}
                     {{if eq .ShowInAll "N"}}
                         <div>不会出现在<a href="/" class="bLink">全部</a>栏目内</div>
+                    {{end}}
+                    {{if and (not (eq $.userinfo nil)) (eq $.userinfo.Role "admin")}}
+                        <div class="text-gray hover:text-blue-5 cursor-pointer">
+                            <a href="/tags/edit/{{.ID}}">编辑</a>
+                        </div>
                     {{end}}
                 </div>
             {{end}}

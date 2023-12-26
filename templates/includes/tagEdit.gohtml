@@ -1,0 +1,53 @@
+{{ define "title"}}<title>编辑标签-{.tag.Name}</title>
+<link rel="stylesheet"
+      href="/static/css/sumoselect.min.css">
+<script src="/static/js/jquery.sumoselect.min.js"></script>
+<script>
+    $(function () {
+        const selectBox = $('.selectBox')
+        selectBox.SumoSelect();
+    })
+</script>
+{{end}}
+{{define "content"}}
+    <form action="/tags/edit" class="text-sm" method="post">
+        <input type="hidden" name="id" value="{{.tag.ID}}">
+        <div class="flex flex-col gap-2">
+            <div class="flex items-center gap-2">
+                <label for="name" class="fw-bold">名称</label>
+                <input type="text" name="name" id="name" class="input" value="{{.tag.Name}}">
+            </div>
+            <div class="flex items-center gap-2">
+                <label for="desc" class="fw-bold">描述</label>
+                <input type="text" name="desc" id="desc" class="input" value="{{.tag.Desc}}">
+            </div>
+            <div class="flex items-center gap-2">
+                <label for="showInHot" class="fw-bold">是否显示在热点</label>
+                <input type="checkbox" name="showInHot" id="showInHot" class="input"
+                       {{if eq .tag.ShowInHot "Y"}}checked{{end}}/>
+            </div>
+            <div class="flex items-center gap-2">
+                <label for="showInAll" class="fw-bold">是否显示在全部</label>
+                <input type="checkbox" name="showInAll" id="showInAll" class="input"
+                       {{if eq .tag.ShowInAll "Y"}}checked{{end}}>
+            </div>
+            <div class="flex items-center gap-2">
+                <label for="parentID" class="fw-bold">父标签</label>
+                <select id="parentID" class="selectBox  input flex-1" name="parentID">
+                    {{range .parents}}
+                        <option value="{{.ID}}" {{if eq .ID $.parentID}}selected{{end}}>{{.Name}} - {{.Desc}}</option>
+                    {{end}}
+                </select>
+            </div>
+            <div class="flex items-center gap-2">
+                <label for="cssClass" class="fw-bold">样式</label>
+                <input type="text" name="cssClass" id="cssClass" class="input flex-1" value="{{.tag.CssClass}}">
+            </div>
+            <div class="flex items-center gap-2">
+                <input type="submit" value="保存" class="btn">
+                <a class="bLink" href="/tags">返回</a>
+            </div>
+        </div>
+
+    </form>
+{{end}}

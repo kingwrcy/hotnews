@@ -79,6 +79,111 @@ func (i *IndexHandler) ToResetPwd(c *gin.Context) {
 func (i *IndexHandler) ToBeInvited(c *gin.Context) {
 	c.HTML(200, "toBeInvited.gohtml", OutputCommonSession(i.db, c, gin.H{}))
 }
+
+func (i *IndexHandler) ToAddTag(c *gin.Context) {
+	userinfo := GetCurrentUser(c)
+	if userinfo == nil || userinfo.Role != "admin" {
+		c.Redirect(302, "/tags")
+		return
+	}
+	var parentTags []model.TbTag
+	i.db.Find(&parentTags, "parent_id is null")
+
+	c.HTML(200, "tagEdit.gohtml", OutputCommonSession(i.db, c, gin.H{
+		"parents":  parentTags,
+		"selected": "tags",
+	}))
+}
+func (i *IndexHandler) ToEditTag(c *gin.Context) {
+	userinfo := GetCurrentUser(c)
+	if userinfo == nil || userinfo.Role != "admin" {
+		c.Redirect(302, "/tags")
+		return
+	}
+	id := cast.ToString(c.Param("id"))
+	var tag model.TbTag
+	i.db.First(&tag, "id = ?", id)
+
+	var parentTags []model.TbTag
+	i.db.Find(&parentTags, "parent_id is null")
+
+	c.HTML(200, "tagEdit.gohtml", OutputCommonSession(i.db, c, gin.H{
+		"tag":      tag,
+		"parentID": cast.ToInt(tag.ParentID),
+		"parents":  parentTags,
+		"selected": "tags",
+	}))
+}
+
+func (i *IndexHandler) SaveTag(c *gin.Context) {
+	var request vo.EditTagVo
+
+	if err := c.Bind(&request); err != nil {
+		c.Redirect(302, "/tags")
+		return
+	}
+	userinfo := GetCurrentUser(c)
+	if userinfo == nil || userinfo.Role != "admin" {
+		c.Redirect(302, "/tags")
+		return
+	}
+	showInHot := "Y"
+	showInAll := "Y"
+	if request.ShowInHot != "on" {
+		showInHot = "N"
+	}
+	if request.ShowInAll != "on" {
+		showInAll = "N"
+	}
+	log.Printf("request.ID is %+v", cast.ToInt(request.ID))
+	if cast.ToInt(request.ID) == 0 {
+		i.db.Save(&model.TbTag{
+			Name:      request.Name,
+			Desc:      request.Desc,
+			ParentID:  request.ParentID,
+			CssClass:  request.CssClass,
+			ShowInHot: showInHot,
+			ShowInAll: showInAll,
+		})
+	} else {
+		i.db.Model(&model.TbTag{}).Where("id = ?", request.ID).
+			Updates(model.TbTag{Name: request.Name,
+				Desc:      request.Desc,
+				ShowInHot: showInHot,
+				ShowInAll: showInAll,
+				ParentID:  request.ParentID,
+				CssClass:  request.CssClass,
+			})
+	}
+
+	c.Redirect(302, "/tags")
+}
+
+func (i *IndexHandler) AddTag(c *gin.Context) {
+	var request vo.EditTagVo
+	if err := c.Bind(&request); err != nil {
+		c.JSON(403, nil)
+		return
+	}
+	userinfo := GetCurrentUser(c)
+	if userinfo == nil || userinfo.Role != "admin" {
+		c.JSON(403, nil)
+		return
+	}
+	var tag model.TbTag
+	tag.Name = request.Name
+	tag.Desc = request.Desc
+	if request.ParentID != nil {
+		tag.Parent = &model.TbTag{
+			Model: gorm.Model{
+				ID: *request.ParentID,
+			},
+		}
+	}
+	i.db.Create(&tag)
+	c.JSON(200, nil)
+}
+
 func (i *IndexHandler) ToTags(c *gin.Context) {
 	var tags []model.TbTag
 

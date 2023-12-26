@@ -16,7 +16,6 @@ $(function () {
     })
 
     $(document.body).click(()=>{
-        console.log($sidebar.css('display'))
       if ($sidebar.css('display') === 'block'){
           $sidebar.hide().fadeOut()
       }

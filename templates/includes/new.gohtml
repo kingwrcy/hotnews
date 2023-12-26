@@ -1,7 +1,7 @@
 {{ define "title"}}
     <title>发表内容</title>
     <link rel="stylesheet"
-          href="/static/css/sumoselect.min.css"></script>
+          href="/static/css/sumoselect.min.css">
     <script src="/static/js/jquery.sumoselect.min.js"></script>
 
     <link rel="stylesheet" href="/static/sceditor/themes/default.min.css"/>
@@ -14,18 +14,13 @@
     <script src="/static/sceditor/plugins/autoyoutube.js"></script>
     <script>
         $(function () {
-
-            $('.selectBox').SumoSelect({
+            const selectBox = $('.selectBox')
+            selectBox.SumoSelect({
                 placeholder: '请最少选择一个标签,最多选择5个',
                 search: true,
                 searchText: '支持搜索',
                 csvDispCount: 5
             });
-
-
-            // $("#content").hide()
-
-
 
             var textarea = document.querySelector('#content>textarea');
             sceditor.create(textarea, {
@@ -56,7 +51,41 @@
                     $("#linkEle").show()
                 }
             })
+
+            {{range .post.Tags}}
+                selectBox[0].sumo.selectItem('{{.ID}}');
+            {{end}}
+
+            {{if .post.Content}}
+                sceditor.instance(textarea).setWysiwygEditorValue("{{.post.Content}}")
+                sceditor.instance(textarea).updateOriginal();
+            {{end}}
+
+
+
+
+            let record = {
+                pid:"{{.post.Pid}}",
+                title:"{{.post.Title}}",
+                type:"{{.post.Type}}",
+                link:"{{.post.Link}}"
+            }
+
+            if(record.type){
+                $("#"+record.type).prop('checked','checked')
+                if(record.type !== 'link'){
+                    $("#linkEle").hide()
+                }
+            }
+            if(record.title){
+                $("input[name='title']").val(record.title)
+            }
+            if(record.link){
+                $("input[name='link']").val(record.link)
+            }
+
         })
+
     </script>
     <style>
         .sceditor-container {
@@ -66,11 +95,8 @@
 {{ end }}
 
 {{define "content"}}
-    <form action="/p/new" method="post" id="newPostForm">
+    <form {{if .post.Pid}}action="/p/{{.post.Pid}}/edit" {{else}}action="/p/new" {{end}} method="post" id="newPostForm">
         <div class="mt-2 flex flex-col gap2 text-sm">
-
-
-
             <div class="flex flex-row gap-2 mt-2">
                 <div class="font-bold">类型</div>
                 <div class="flex flex-row gap-2 items-center">
@@ -82,7 +108,7 @@
             </div>
             <div class="flex flex-row gap-2 items-center">
                 <label for="title" class="font-bold">标题</label>
-                <input type="text" id="title" name="title" class="input flex-1" autocomplete="off"/>
+                <input type="text" id="title" name="title" class="input flex-1" autocomplete="off" />
             </div>
 
 

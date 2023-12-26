@@ -26,6 +26,84 @@ func NewPostHandler(injector *do.Injector) (*PostHandler, error) {
 	}, nil
 }
 
+func (p PostHandler) DoUpdate(c *gin.Context) {
+	userinfo := GetCurrentUser(c)
+	pid := cast.ToString(c.Param("pid"))
+	if userinfo == nil {
+		c.Redirect(302, "/u/login")
+		return
+	}
+	if userinfo.Role != "admin" {
+		if userinfo == nil {
+			c.Redirect(302, "/")
+			return
+		}
+	}
+	var request vo.NewPostRequest
+	if err := c.Bind(&request); err != nil {
+		c.Redirect(302, "/")
+		return
+	}
+	var post model.TbPost
+	if err := p.db.Preload("Tags").First(&post, "pid = ?", pid).Error; err != nil {
+		c.Redirect(302, "/")
+		return
+	}
+	var tags []model.TbTag
+	p.db.Model(&model.TbTag{}).Find(&tags, "id in ?", request.TagIDs)
+
+	tx := p.db.Model(&post)
+	tx.Association("Tags").Unscoped().Clear()
+	post.Title = request.Title
+	post.Content = request.Content
+	post.Link = request.Link
+	post.Type = request.Type
+	host := ""
+	post.Tags = tags
+	if request.Type == "link" {
+		urlParsed, _ := url.Parse(request.Link)
+		host = urlParsed.Host
+		if strings.HasPrefix(host, "www.") {
+			_, host, _ = strings.Cut(host, "www.")
+		}
+	} else {
+		post.Link = ""
+	}
+	post.Domain = host
+	post.UpdatedAt = time.Now()
+	p.db.Save(&post)
+	c.Redirect(302, "/p/"+post.Pid)
+	return
+}
+
+func (p PostHandler) ToEdit(c *gin.Context) {
+	userinfo := GetCurrentUser(c)
+	pid := cast.ToString(c.Param("pid"))
+	if userinfo == nil {
+		c.Redirect(302, "/u/login")
+		return
+	}
+	if userinfo.Role != "admin" {
+		if userinfo == nil {
+			c.Redirect(302, "/")
+			return
+		}
+	}
+	var post model.TbPost
+	if err := p.db.Preload("Tags").First(&post, "pid = ?", pid).Error; err != nil {
+		if userinfo == nil {
+			c.Redirect(302, "/")
+			return
+		}
+	}
+	var tempTags []model.TbTag
+	p.db.Model(&model.TbTag{}).Preload("Parent").Where("parent_id is null").Preload("Children").Find(&tempTags)
+	c.HTML(200, "new.gohtml", OutputCommonSession(p.db, c, gin.H{
+		"post":     post,
+		"selected": "new",
+		"tags":     tempTags,
+	}))
+}
 func (p PostHandler) Detail(c *gin.Context) {
 	userinfo := GetCurrentUser(c)
 

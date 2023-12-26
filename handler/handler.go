@@ -58,6 +58,8 @@ func Setup(injector *do.Injector, engine *gin.Engine) {
 	postGroup := engine.Group("/p")
 	postGroup.POST("/new", postHandler.Add)
 	postGroup.GET("/:pid", postHandler.Detail)
+	postGroup.GET("/:pid/edit", postHandler.ToEdit)
+	postGroup.POST("/:pid/edit", postHandler.DoUpdate)
 	postGroup.POST("/comment", postHandler.AddComment)
 
 	tagGroup := engine.Group("/t")

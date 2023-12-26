@@ -68,6 +68,12 @@
                         <div class="cursor-pointer  hover:text-hover">
                             <a href="/p/{{$post.Pid}}">{{if gt $post.CommentCount 0 }}{{$post.CommentCount}}条{{else}}去{{end}}评论</a>
                         </div>
+                        {{if eq $.userinfo.Role "admin"}}
+                            <div>|</div>
+                            <div class="cursor-pointer hover:text-red">
+                                <a href="/p/{{$post.Pid}}/edit">去编辑</a>
+                            </div>
+                        {{end}}
                     </div>
                     {{ if eq $.selected "detail"}}
                         <div class="mt-2 text-sm content">

@@ -12,6 +12,11 @@
         <p class="font-bold text-lg my-4 underline cursor-pointer text-black"
            style="text-underline-offset: 0.4rem;text-decoration-thickness: 2px;">
             <a href='/t/p/{{.Name}}'>{{.Name}}</a>
+        {{if and (not (eq $.userinfo nil)) (eq $.userinfo.Role "admin")}}
+            <span class="text-gray text-sm hover:text-blue-5 cursor-pointer">
+                <a href="/tags/edit/{{.ID}}">编辑</a>
+            </span>
+        {{end}}
         </p>
 
         <div class="flex flex-col gap-2 text-gray text-sm ">

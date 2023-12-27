@@ -129,30 +129,38 @@ func (i *IndexHandler) SaveTag(c *gin.Context) {
 	}
 	showInHot := "Y"
 	showInAll := "Y"
+	var pid *uint
 	if request.ShowInHot != "on" {
 		showInHot = "N"
 	}
 	if request.ShowInAll != "on" {
 		showInAll = "N"
 	}
-	log.Printf("request.ID is %+v", cast.ToInt(request.ID))
+	if cast.ToInt(request.ParentID) > 0 {
+		id := cast.ToUint(request.ParentID)
+		pid = &id
+	} else {
+		pid = nil
+	}
+	log.Printf("request.ParentID is %+v", cast.ToInt(request.ParentID))
 	if cast.ToInt(request.ID) == 0 {
 		i.db.Save(&model.TbTag{
 			Name:      request.Name,
 			Desc:      request.Desc,
-			ParentID:  request.ParentID,
+			ParentID:  pid,
 			CssClass:  request.CssClass,
 			ShowInHot: showInHot,
 			ShowInAll: showInAll,
 		})
 	} else {
 		i.db.Model(&model.TbTag{}).Where("id = ?", request.ID).
-			Updates(model.TbTag{Name: request.Name,
-				Desc:      request.Desc,
-				ShowInHot: showInHot,
-				ShowInAll: showInAll,
-				ParentID:  request.ParentID,
-				CssClass:  request.CssClass,
+			Updates(map[string]interface{}{
+				"name":        request.Name,
+				"desc":        request.Desc,
+				"parent_id":   pid,
+				"css_class":   request.CssClass,
+				"show_in_hot": showInHot,
+				"show_in_all": showInAll,
 			})
 	}
 

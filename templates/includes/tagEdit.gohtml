@@ -34,6 +34,7 @@
             <div class="flex items-center gap-2">
                 <label for="parentID" class="fw-bold">父标签</label>
                 <select id="parentID" class="selectBox  input flex-1" name="parentID">
+                    <option value="">无父级</option>
                     {{range .parents}}
                         <option value="{{.ID}}" {{if eq .ID $.parentID}}selected{{end}}>{{.Name}} - {{.Desc}}</option>
                     {{end}}

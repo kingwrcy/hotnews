@@ -51,6 +51,13 @@ func (i *IndexHandler) Hit(c *gin.Context) {
 	sha.Write([]byte(fmt.Sprintf("%s%s", arr[0], time.Now().Format("20060102"))))
 	stat.IP = arr[0]
 	stat.IPHash = fmt.Sprintf("%x", sha.Sum(nil))
+
+	var count int64
+	i.db.Model(&model.TbStatistics{}).Where("ip_hash = ?",stat.IPHash).Count(&count)
+	if count == 0 {
+		c.String(200, "ok")
+	}
+
 	stat.Target = path
 	stat.UpdatedAt = time.Now()
 	stat.CreatedAt = time.Now()

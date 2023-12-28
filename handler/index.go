@@ -4,7 +4,6 @@ import (
 	"crypto/sha256"
 	"fmt"
 	"github.com/gin-gonic/gin"
-	"github.com/go-resty/resty/v2"
 	"github.com/kingwrcy/hn/model"
 	"github.com/kingwrcy/hn/vo"
 	"github.com/mileusna/useragent"
@@ -60,13 +59,7 @@ func (i *IndexHandler) Hit(c *gin.Context) {
 	stat.Tablet = ua.Tablet
 	stat.Device = ua.Device
 	stat.Refer = ref
-
-	country, err := resty.New().R().Get(fmt.Sprintf("http://ip-api.com/line/%s?fields=country", arr[0]))
-	if err != nil {
-		log.Printf("获取国家异常:%s", err)
-	} else {
-		stat.Country = strings.Trim(strings.ReplaceAll(string(country.Body()), "\n", " "), " ")
-	}
+	stat.Country = c.GetHeader("CF-IPCountry")
 	i.db.Save(&stat)
 	c.String(200, "ok")
 }

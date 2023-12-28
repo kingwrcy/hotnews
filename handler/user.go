@@ -163,15 +163,6 @@ func (u *UserHandler) Links(c *gin.Context) {
 	}))
 }
 
-func GetUnReadMessageCount(db *gorm.DB, userID uint) int64 {
-	if userID <= 0 {
-		return 0
-	}
-	var total int64
-	db.Model(&model.TbMessage{}).Where("to_user_id = ?", userID).Count(&total)
-	return total
-}
-
 func (u *UserHandler) ToMessage(c *gin.Context) {
 
 	var messages []model.TbMessage
@@ -392,4 +383,19 @@ func (u *UserHandler) DoInvited(c *gin.Context) {
 	c.HTML(200, "toBeInvited.gohtml", OutputCommonSession(u.db, c, gin.H{
 		"msg": "注册成功,去登录吧",
 	}))
+}
+
+func (u *UserHandler) ToList(c *gin.Context) {
+	userinfo := GetCurrentUser(c)
+	if userinfo == nil || userinfo.Role != "admin" {
+		c.Redirect(302, "/")
+		return
+	}
+	var users []model.TbUser
+	u.db.Order("id desc").Find(&users)
+	c.HTML(200, "users.gohtml", OutputCommonSession(u.db, c, gin.H{
+		"selected": "users",
+		"users":    users,
+	}))
+
 }

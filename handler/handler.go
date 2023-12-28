@@ -44,6 +44,7 @@ func Setup(injector *do.Injector, engine *gin.Engine) {
 	engine.POST("/invite/:code", userHandler.DoInvited)
 	engine.GET("/about", userHandler.ToAbout)
 	engine.GET("/type/:type", postHandler.SearchByType)
+	engine.GET("/users", userHandler.ToList)
 
 	engine.POST("/inspect", inspectHandler.Inspect)
 

@@ -3,18 +3,15 @@
 {{define "content"}}
     <form method="get" action="/statistics">
         <div class="flex flex-col gap-2">
-           <div class="flex gap-2 items-center">
-               <div class="flex gap-2 items-center">
-                   <label for="start" class="fw-bold">开始日期</label>
-                   <input type="date" name="start" id="start" value="{{.startDate}}">
-               </div>
-                <div>到</div>
-               <div class="flex gap-2 items-center">
-                   <label for="end" class="fw-bold">结束日期</label>
-                   <input type="date" name="end" id="end" value="{{.endDate}}">
-               </div>
-           </div>
+            <div class="flex gap-2 items-center">
+                <label for="start" class="fw-bold">开始日期</label>
+                <input type="date" name="start" id="start" value="{{.startDate}}">
+            </div>
 
+            <div class="flex gap-2 items-center">
+                <label for="end" class="fw-bold">结束日期</label>
+                <input type="date" name="end" id="end" value="{{.endDate}}">
+            </div>
             <div class="flex gap-2">
                 <input type="submit" class="btn my-2" value="查询">
             </div>

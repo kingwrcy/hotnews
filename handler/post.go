@@ -443,7 +443,6 @@ func QueryPosts(db *gorm.DB, request vo.QueryPostsRequest) gin.H {
 	if total%request.Size > 0 {
 		totalPage = totalPage + 1
 	}
-	log.Printf("page :%d, %d , %d , %d", total, request.Page, totalPage, request.Size)
 	return gin.H{
 		"posts":       posts,
 		"totalPage":   totalPage,

@@ -21,6 +21,8 @@
         <div class='hover:text-hover {{if eq .selected "tags"}}selected{{end}} '><a href="/tags">标签</a></div>
         <div class='mhover:text-hover {{if eq .selected "search"}}selected{{end}}'><a href="/search">搜索</a></div>
         {{if and (not (eq .userinfo nil)) (eq .userinfo.Role "admin")}}
+            <div class='mhover:text-hover {{if eq .selected "users"}}selected{{end}}'><a href="/users">用户</a>
+            </div>
             <div class='mhover:text-hover {{if eq .selected "statistics"}}selected{{end}}'><a href="/statistics">统计</a>
             </div>
         {{end}}

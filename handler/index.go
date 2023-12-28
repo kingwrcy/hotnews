@@ -28,15 +28,21 @@ func (i *IndexHandler) Index(c *gin.Context) {
 	userinfo := GetCurrentUser(c)
 	begin := time.Now().AddDate(0, 0, -7)
 	page := c.DefaultQuery("p", "1")
-	c.HTML(200, "index.gohtml", OutputCommonSession(i.db, c, gin.H{
-		"selected": "/",
-	}, QueryPosts(i.db, vo.QueryPostsRequest{
+	topics := QueryPosts(i.db, vo.QueryPostsRequest{
 		Userinfo:  userinfo,
 		Begin:     &begin,
 		OrderType: "index",
 		Page:      cast.ToInt64(page),
 		Size:      25,
-	})))
+	})
+	if list, ok := topics["posts"].([]model.TbPost); ok && len(list) == 0 {
+		c.Redirect(301, "/history")
+		return
+	}
+
+	c.HTML(200, "index.gohtml", OutputCommonSession(i.db, c, gin.H{
+		"selected": "/",
+	}, topics))
 }
 
 func (i *IndexHandler) ToSearch(c *gin.Context) {

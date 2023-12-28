@@ -55,7 +55,7 @@ func (s *StatisticsHandler) Query(c *gin.Context) {
 		}
 		finalCountryMapList[day] = append(finalCountryMapList[day], item)
 	}
-	for _, item := range countryMapList {
+	for _, item := range referMapList {
 		day := cast.ToString(item["day"])
 		if _, ok := finalReferMapList[day]; !ok {
 			finalReferMapList[day] = []map[string]interface{}{}
@@ -101,7 +101,7 @@ func (s *StatisticsHandler) Hit(c *gin.Context) {
 
 	var count int64
 	s.db.Model(&model.TbStatistics{}).Where("ip_hash = ?", stat.IPHash).Count(&count)
-	if count == 0 {
+	if count >= 1 {
 		c.String(200, "ok")
 		return
 	}

@@ -1,17 +1,14 @@
 package handler
 
 import (
-	"crypto/sha256"
 	"fmt"
 	"github.com/gin-gonic/gin"
 	"github.com/kingwrcy/hn/model"
 	"github.com/kingwrcy/hn/vo"
-	"github.com/mileusna/useragent"
 	"github.com/samber/do"
 	"github.com/spf13/cast"
 	"gorm.io/gorm"
 	"log"
-	"strings"
 	"time"
 )
 
@@ -26,59 +23,11 @@ func NewIndexHandler(injector *do.Injector) (*IndexHandler, error) {
 		db:       do.MustInvoke[*gorm.DB](injector),
 	}, nil
 }
-func (i *IndexHandler) Hit(c *gin.Context) {
-	path, pathExist := c.GetQuery("path")
-	ref, refExist := c.GetQuery("ref")
-	var stat model.TbStatistics
-	xForwardFor := c.GetHeader("X-Forwarded-For")
-	userAgent := c.GetHeader("User-Agent")
-
-	if !pathExist || !refExist || path == "" || xForwardFor == "" || userAgent == "" {
-		return
-	}
-	arr := strings.Split(xForwardFor, ",")
-	if len(arr) == 0 {
-		return
-	}
-	ua := useragent.Parse(userAgent)
-	if ua.Bot {
-		return
-	}
-	if path == "index" {
-		path = "/"
-	}
-	sha := sha256.New()
-	sha.Write([]byte(fmt.Sprintf("%s%s", arr[0], time.Now().Format("20060102"))))
-	stat.IP = arr[0]
-	stat.IPHash = fmt.Sprintf("%x", sha.Sum(nil))
-
-	var count int64
-	i.db.Model(&model.TbStatistics{}).Where("ip_hash = ?", stat.IPHash).Count(&count)
-	if count == 0 {
-		c.String(200, "ok")
-		return
-	}
-
-	stat.Target = path
-	stat.UpdatedAt = time.Now()
-	stat.CreatedAt = time.Now()
-	stat.Desktop = ua.Desktop
-	stat.Mobile = ua.Mobile
-	stat.Tablet = ua.Tablet
-	stat.Device = ua.Device
-	stat.Refer = ref
-	stat.Country = c.GetHeader("CF-IPCountry")
-	i.db.Save(&stat)
-	c.String(200, "ok")
-}
 
 func (i *IndexHandler) Index(c *gin.Context) {
 	userinfo := GetCurrentUser(c)
-
 	begin := time.Now().AddDate(0, 0, -7)
-
 	page := c.DefaultQuery("p", "1")
-
 	c.HTML(200, "index.gohtml", OutputCommonSession(i.db, c, gin.H{
 		"selected": "/",
 	}, QueryPosts(i.db, vo.QueryPostsRequest{

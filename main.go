@@ -96,6 +96,39 @@ func main() {
 	engine.Run(fmt.Sprintf(":%d", config.Port))
 }
 
+func templateFun() template.FuncMap {
+	return template.FuncMap{
+		"StringsJoin": strings.Join,
+		"timeAgo":     timeAgo,
+		"unEscapeHTML": func(content string) template.HTML {
+			return template.HTML(content)
+		},
+		"add": func(a, b int) int {
+			return a + b
+		},
+		"sub": func(a, b int) int {
+			return a - b
+		},
+		"dateFormat": func(date time.Time, format string) string {
+			return date.Format(format)
+		},
+		"dict": func(values ...interface{}) (map[string]interface{}, error) {
+			if len(values)%2 != 0 {
+				return nil, errors.New("invalid dict call")
+			}
+			dict := make(map[string]interface{}, len(values)/2)
+			for i := 0; i < len(values); i += 2 {
+				key, ok := values[i].(string)
+				if !ok {
+					return nil, errors.New("dict keys must be strings")
+				}
+				dict[key] = values[i+1]
+			}
+			return dict, nil
+		},
+	}
+}
+
 func loadLocalTemplates(templatesDir string) multitemplate.Renderer {
 	r := multitemplate.NewRenderer()
 
@@ -113,33 +146,7 @@ func loadLocalTemplates(templatesDir string) multitemplate.Renderer {
 		copy(layoutCopy, layouts)
 		files := append(layoutCopy, include)
 
-		r.AddFromFilesFuncs(filepath.Base(include), template.FuncMap{
-			"StringsJoin": strings.Join,
-			"timeAgo":     timeAgo,
-			"unEscapeHTML": func(content string) template.HTML {
-				return template.HTML(content)
-			},
-			"add": func(a, b int) int {
-				return a + b
-			},
-			"sub": func(a, b int) int {
-				return a - b
-			},
-			"dict": func(values ...interface{}) (map[string]interface{}, error) {
-				if len(values)%2 != 0 {
-					return nil, errors.New("invalid dict call")
-				}
-				dict := make(map[string]interface{}, len(values)/2)
-				for i := 0; i < len(values); i += 2 {
-					key, ok := values[i].(string)
-					if !ok {
-						return nil, errors.New("dict keys must be strings")
-					}
-					dict[key] = values[i+1]
-				}
-				return dict, nil
-			},
-		}, files...)
+		r.AddFromFilesFuncs(filepath.Base(include), templateFun(), files...)
 	}
 	return r
 }
@@ -175,33 +182,7 @@ func loadTemplates(templatesDir fs.FS) multitemplate.Renderer {
 			templateContents = append(templateContents, string(buffer))
 			open.Close()
 		}
-		r.AddFromStringsFuncs(filepath.Base(include), template.FuncMap{
-			"StringsJoin": strings.Join,
-			"timeAgo":     timeAgo,
-			"unEscapeHTML": func(content string) template.HTML {
-				return template.HTML(content)
-			},
-			"add": func(a, b int) int {
-				return a + b
-			},
-			"sub": func(a, b int) int {
-				return a - b
-			},
-			"dict": func(values ...interface{}) (map[string]interface{}, error) {
-				if len(values)%2 != 0 {
-					return nil, errors.New("invalid dict call")
-				}
-				dict := make(map[string]interface{}, len(values)/2)
-				for i := 0; i < len(values); i += 2 {
-					key, ok := values[i].(string)
-					if !ok {
-						return nil, errors.New("dict keys must be strings")
-					}
-					dict[key] = values[i+1]
-				}
-				return dict, nil
-			},
-		}, templateContents...)
+		r.AddFromStringsFuncs(filepath.Base(include), templateFun(), templateContents...)
 	}
 	return r
 }

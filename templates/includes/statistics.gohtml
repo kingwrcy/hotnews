@@ -1,0 +1,73 @@
+{{ define "title"}}<title>统计分析</title>{{end}}
+
+{{define "content"}}
+    <form method="get" action="/statistics">
+        <div class="flex flex-col gap-2">
+           <div class="flex gap-2 items-center">
+               <div class="flex gap-2 items-center">
+                   <label for="start" class="fw-bold">开始日期</label>
+                   <input type="date" name="start" id="start" value="{{.startDate}}">
+               </div>
+                <div>到</div>
+               <div class="flex gap-2 items-center">
+                   <label for="end" class="fw-bold">结束日期</label>
+                   <input type="date" name="end" id="end" value="{{.endDate}}">
+               </div>
+           </div>
+
+            <div class="flex gap-2">
+                <input type="submit" class="btn my-2" value="查询">
+            </div>
+        </div>
+    </form>
+
+    <div>
+        <span class="fw-bold">独立IP总计</span>:{{.total}}
+    </div>
+    <hr class="my-4">
+    <div class="my-2 fw-bold">国家分类:</div>
+    <hr class="my-4">
+    {{range $day, $item :=.countryMapList}}
+        <table class="w-full mytable my-4" style="border-collapse: collapse; ">
+            <thead>
+            <tr>
+                <th>日期</th>
+                <th>国家</th>
+                <th>数量</th>
+            </tr>
+            </thead>
+            <tbody>
+            {{range $item}}
+                <tr>
+                    <td class="w-1/5">{{ $day }}</td>
+                    <td class="w-3/5">{{.country}}</td>
+                    <td>{{.total}}</td>
+                </tr>
+            {{end}}
+            </tbody>
+        </table>
+    {{end}}
+
+    <div class="my-2 fw-bold mt-4">来源分类:</div>
+    <hr class="my-4">
+    {{range $day, $item :=.countryMapList}}
+        <table class="w-full mytable my-4" style="border-collapse: collapse; ">
+            <thead>
+            <tr>
+                <th>日期</th>
+                <th>来源</th>
+                <th>数量</th>
+            </tr>
+            </thead>
+            <tbody>
+            {{range $item}}
+                <tr>
+                    <td class="w-1/5">{{ $day }}</td>
+                    <td class="w-3/5">{{.refer}}</td>
+                    <td>{{.total}}</td>
+                </tr>
+            {{end}}
+            </tbody>
+        </table>
+    {{end}}
+{{end}}

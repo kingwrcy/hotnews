@@ -18,10 +18,13 @@ func Setup(injector *do.Injector, engine *gin.Engine) {
 	indexHandler := do.MustInvoke[*IndexHandler](injector)
 	postHandler := do.MustInvoke[*PostHandler](injector)
 	inspectHandler := do.MustInvoke[*InspectHandler](injector)
+	statisticsHandler := do.MustInvoke[*StatisticsHandler](injector)
 	_ = do.MustInvoke[*CommentHandler](injector)
 
+	engine.GET("/hit", statisticsHandler.Hit)
+	engine.GET("/statistics", statisticsHandler.Query)
+
 	engine.GET("/", indexHandler.Index)
-	engine.GET("/hit", indexHandler.Hit)
 	engine.GET("/history", indexHandler.History)
 	engine.GET("/search", indexHandler.ToSearch)
 	engine.GET("/new", indexHandler.ToNew)
@@ -78,6 +81,7 @@ func provideHandlers(injector *do.Injector) {
 	do.Provide(injector, NewPostHandler)
 	do.Provide(injector, newInspectHandler)
 	do.Provide(injector, newCommentHandler)
+	do.Provide(injector, NewStatisticsHandler)
 }
 
 const letterBytes = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"

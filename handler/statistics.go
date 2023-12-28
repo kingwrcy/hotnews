@@ -101,7 +101,7 @@ func (s *StatisticsHandler) Hit(c *gin.Context) {
 
 	var count int64
 	s.db.Model(&model.TbStatistics{}).Where("ip_hash = ?", stat.IPHash).Count(&count)
-	if count == 0 {
+	if count >= 1 {
 		c.String(200, "ok")
 		return
 	}

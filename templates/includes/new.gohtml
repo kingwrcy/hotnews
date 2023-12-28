@@ -119,7 +119,7 @@
                     {{range .tags}}
 
                         {{if eq .Name "站务"}}
-                            {{ if eq $.userinfo.Role "admin"}}
+                            {{if and (not (eq $.userinfo nil)) (eq $.userinfo.Role "admin")}}
                                 <optgroup label="{{.Name}}">
                                     {{range  .Children}}
                                         <option value="{{.ID}}">{{.Name}} {{if .Desc}} - {{.Desc}}{{end}}</option>

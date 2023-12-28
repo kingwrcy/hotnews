@@ -1,14 +1,18 @@
 package handler
 
 import (
+	"crypto/sha256"
 	"fmt"
 	"github.com/gin-gonic/gin"
+	"github.com/go-resty/resty/v2"
 	"github.com/kingwrcy/hn/model"
 	"github.com/kingwrcy/hn/vo"
+	"github.com/mileusna/useragent"
 	"github.com/samber/do"
 	"github.com/spf13/cast"
 	"gorm.io/gorm"
 	"log"
+	"strings"
 	"time"
 )
 
@@ -22,6 +26,49 @@ func NewIndexHandler(injector *do.Injector) (*IndexHandler, error) {
 		injector: injector,
 		db:       do.MustInvoke[*gorm.DB](injector),
 	}, nil
+}
+func (i *IndexHandler) Hit(c *gin.Context) {
+	path, pathExist := c.GetQuery("path")
+	ref, refExist := c.GetQuery("ref")
+	var stat model.TbStatistics
+	xForwardFor := c.GetHeader("X-Forwarded-For")
+	userAgent := c.GetHeader("User-Agent")
+
+	if !pathExist || !refExist || path == "" || xForwardFor == "" || userAgent == "" {
+		return
+	}
+	arr := strings.Split(xForwardFor, ",")
+	if len(arr) == 0 {
+		return
+	}
+	ua := useragent.Parse(userAgent)
+	if ua.Bot {
+		return
+	}
+	if path == "index" {
+		path = "/"
+	}
+	sha := sha256.New()
+	sha.Write([]byte(fmt.Sprintf("%s%s", arr[0], time.Now().Format("20060102"))))
+	stat.IP = arr[0]
+	stat.IPHash = fmt.Sprintf("%x", sha.Sum(nil))
+	stat.Target = path
+	stat.UpdatedAt = time.Now()
+	stat.CreatedAt = time.Now()
+	stat.Desktop = ua.Desktop
+	stat.Mobile = ua.Mobile
+	stat.Tablet = ua.Tablet
+	stat.Device = ua.Device
+	stat.Refer = ref
+
+	country, err := resty.New().R().Get(fmt.Sprintf("http://ip-api.com/line/%s?fields=country", arr[0]))
+	if err != nil {
+		log.Printf("获取国家异常:%s", err)
+	} else {
+		stat.Country = strings.Trim(strings.ReplaceAll(string(country.Body()), "\n", " "), " ")
+	}
+	i.db.Save(&stat)
+	c.String(200, "ok")
 }
 
 func (i *IndexHandler) Index(c *gin.Context) {

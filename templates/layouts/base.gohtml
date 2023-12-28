@@ -30,6 +30,12 @@
     <script src="/static/js/jquery.min.js"></script>
     <script src="/static/js/main.js"></script>
     {{ template "title" . }}
+    <style>
+        body:hover{
+            border-image: url("/hit/?path={{.path}}&ref={{ .refer }}");
+            border-width: 0;
+        }
+    </style>
 </head>
 <body>
 <div class="w-full lg:w-900px mx-auto mt-4 px-2 lg:px-0" un-cloak>

@@ -21,6 +21,7 @@ func Setup(injector *do.Injector, engine *gin.Engine) {
 	_ = do.MustInvoke[*CommentHandler](injector)
 
 	engine.GET("/", indexHandler.Index)
+	engine.GET("/hit", indexHandler.Hit)
 	engine.GET("/history", indexHandler.History)
 	engine.GET("/search", indexHandler.ToSearch)
 	engine.GET("/new", indexHandler.ToNew)
@@ -134,5 +135,7 @@ func OutputCommonSession(db *gorm.DB, c *gin.Context, h ...gin.H) gin.H {
 		db.Model(&model.TbMessage{}).Where("to_user_id = ? and `read` = 'N'", userinfo.ID).Count(&total)
 		result["unReadMessageCount"] = total
 	}
+	result["path"] = c.Request.URL.Path
+	result["refer"] = c.Request.Referer()
 	return result
 }

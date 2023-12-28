@@ -53,9 +53,10 @@ func (i *IndexHandler) Hit(c *gin.Context) {
 	stat.IPHash = fmt.Sprintf("%x", sha.Sum(nil))
 
 	var count int64
-	i.db.Model(&model.TbStatistics{}).Where("ip_hash = ?",stat.IPHash).Count(&count)
+	i.db.Model(&model.TbStatistics{}).Where("ip_hash = ?", stat.IPHash).Count(&count)
 	if count == 0 {
 		c.String(200, "ok")
+		return
 	}
 
 	stat.Target = path

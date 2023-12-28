@@ -55,7 +55,7 @@ func (s *StatisticsHandler) Query(c *gin.Context) {
 		}
 		finalCountryMapList[day] = append(finalCountryMapList[day], item)
 	}
-	for _, item := range countryMapList {
+	for _, item := range referMapList {
 		day := cast.ToString(item["day"])
 		if _, ok := finalReferMapList[day]; !ok {
 			finalReferMapList[day] = []map[string]interface{}{}

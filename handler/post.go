@@ -54,6 +54,7 @@ func (p PostHandler) DoUpdate(c *gin.Context) {
 
 	tx := p.db.Model(&post)
 	tx.Association("Tags").Unscoped().Clear()
+
 	post.Title = request.Title
 	post.Content = request.Content
 	post.Link = request.Link
@@ -71,6 +72,13 @@ func (p PostHandler) DoUpdate(c *gin.Context) {
 	}
 	post.Domain = host
 	post.UpdatedAt = time.Now()
+	if userinfo.Role == "admin" {
+		if request.Top == "on" {
+			post.Top = 1
+		} else {
+			post.Top = 0
+		}
+	}
 	p.db.Save(&post)
 	c.Redirect(302, "/p/"+post.Pid)
 	return
@@ -226,6 +234,11 @@ func (p PostHandler) Add(c *gin.Context) {
 		}
 	}
 
+	top := 0
+	if userinfo.Role == "admin" && request.Top == "on" {
+		top = 1
+	}
+
 	post := model.TbPost{
 		Title:        strings.Trim(request.Title, " "),
 		Link:         strings.Trim(request.Link, " "),
@@ -239,6 +252,7 @@ func (p PostHandler) Add(c *gin.Context) {
 		Domain:       host,
 		Pid:          RandStringBytesMaskImpr(8),
 		CommentCount: 0,
+		Top:          top,
 	}
 
 	err := p.db.Transaction(func(tx *gorm.DB) error {
@@ -423,10 +437,10 @@ func QueryPosts(db *gorm.DB, request vo.QueryPostsRequest) gin.H {
 	} else if request.OrderType == "index" {
 		tx.Where("not exists (select 1 from tb_post_tag pt,tb_tag t where t.id = pt.tb_tag_id and pt.tb_post_id = p.id and t.show_in_hot = 'N')")
 		tx.Where("p.created_at >= current_date() - interval 7 day and p.point > 0")
-		tx.Order("p.point desc,p.created_at desc")
+		tx.Order("p.top desc ,p.point desc,p.created_at desc")
 	} else if request.OrderType == "" {
 		tx.Where("not exists (select 1 from tb_post_tag pt,tb_tag t where t.id = pt.tb_tag_id and pt.tb_post_id = p.id and t.show_in_all = 'N')")
-		tx.Order("p.created_at desc")
+		tx.Order("p.top desc,p.created_at desc")
 	}
 
 	var total int64

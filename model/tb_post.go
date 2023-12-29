@@ -29,6 +29,7 @@ type TbPost struct {
 	Point           float64     `gorm:"column:point;type:decimal(20,10)"`
 	UpVoted         int
 	DownVoted       int
+	Top             int `gorm:"column:top;type:int;default:0"`
 }
 
 func (*TbPost) TableName() string {

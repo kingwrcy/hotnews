@@ -14,14 +14,25 @@
                 </div>
                 <div class="flex flex-col flex-1 ">
                     <div class="flex flex-row gap-2 items-center ">
+
                         <div class="text-sm {{if eq $.selected "detail"}}fw-bold{{end}} hover:text-gray lg:max-w-4/5 text-[#06c] fw-bold">
                             {{ if eq $post.Type "ask"}}
                                 <a href="/p/{{$post.Pid}}">{{$post.Title}}</a>
                             {{else}}
                                 <a href="{{$post.Link}}" target="_blank">{{$post.Title}}</a>
                             {{end}}
-
                         </div>
+                        {{if or (eq $.selected "/") (eq $.selected "history")}}
+                            {{if gt $post.Top 0}}
+                                <svg width="16px" height="16px" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 12 12">
+                                    <g fill="#ef4444">
+                                        <path d="M8.052 1.436a1.5 1.5 0 0 0-2.38.347L4.145 4.608l-2.33.928a.5.5 0 0 0-.169.818l1.647 1.647l-2.146 2.146l-.147.854l.854-.147L4 8.708l1.646 1.646a.5.5 0 0 0 .818-.168l.933-2.332l2.821-1.526a1.5 1.5 0 0 0 .347-2.38L8.052 1.436z"
+                                              fill="#ef4444"></path>
+                                    </g>
+                                </svg>
+                            {{end}}
+                        {{end}}
+
                         <div class="lg:flex flex-row gap-1 items-center text-xs hidden">
                             {{range $post.Tags}}
                                 <div class=" border px-1.5 rounded {{.CssClass}} b-solid b-coolGray cursor-pointer ">
@@ -66,7 +77,8 @@
                         <div class="when">{{$post.CreatedAt | timeAgo}}</div>
                         <div>|</div>
                         <div class="cursor-pointer  hover:text-hover">
-                            <a href="/p/{{$post.Pid}}">{{if gt $post.CommentCount 0 }}{{$post.CommentCount}}条{{else}}去{{end}}评论</a>
+                            <a href="/p/{{$post.Pid}}">{{if gt $post.CommentCount 0 }}{{$post.CommentCount}}条{{else}}去{{end}}
+                                评论</a>
                         </div>
                         {{if and (not (eq $.userinfo nil)) (eq $.userinfo.Role "admin")}}
                             <div>|</div>

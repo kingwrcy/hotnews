@@ -10,6 +10,7 @@ type NewPostRequest struct {
 	TagIDs  []uint `form:"tagIDs[]"`
 	Content string `form:"content"`
 	Type    string `form:"type"`
+	Top     string `form:"top"`
 }
 
 type NewCommentRequest struct {

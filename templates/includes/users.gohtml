@@ -7,7 +7,6 @@
             <tr>
                 <th>名称</th>
                 <th>加入时间</th>
-                <th>邮箱</th>
                 <th>发帖数量</th>
                 <th>评论数量</th>
                 <th>状态</th>
@@ -18,7 +17,6 @@
                 <tr>
                     <td><a class="aLink" href="/u/profile/{{ .Username }}">{{ .Username }}</a></td>
                     <td>{{dateFormat .CreatedAt "2006-01-02 15:04:05"}}</td>
-                    <td>{{.Email}}</td>
                     <td><a class="bLink" href="/u/profile/{{ .Username }}/links">{{.PostCount}}</a></td>
                     <td><a class="bLink" href="/u/profile/{{ .Username }}/comments">{{.CommentCount}}</a></td>
                     <td>{{.Status}}</td>

@@ -29,7 +29,7 @@
                 icons: 'monocons',
                 autofocus: true,
                 locale: 'cn',
-                emoticonsEnabled:false,
+                emoticonsEnabled: false,
                 autoUpdate: true,
                 resizeEnabled: true,
                 resizeWidth: false,
@@ -53,34 +53,34 @@
             })
 
             {{range .post.Tags}}
-                selectBox[0].sumo.selectItem('{{.ID}}');
+            selectBox[0].sumo.selectItem('{{.ID}}');
             {{end}}
 
             {{if .post.Content}}
-                sceditor.instance(textarea).setWysiwygEditorValue("{{.post.Content}}")
-                sceditor.instance(textarea).updateOriginal();
+            sceditor.instance(textarea).setWysiwygEditorValue("{{.post.Content}}")
+            sceditor.instance(textarea).updateOriginal();
             {{end}}
 
 
 
 
             let record = {
-                pid:"{{.post.Pid}}",
-                title:"{{.post.Title}}",
-                type:"{{.post.Type}}",
-                link:"{{.post.Link}}"
+                pid: "{{.post.Pid}}",
+                title: "{{.post.Title}}",
+                type: "{{.post.Type}}",
+                link: "{{.post.Link}}"
             }
 
-            if(record.type){
-                $("#"+record.type).prop('checked','checked')
-                if(record.type !== 'link'){
+            if (record.type) {
+                $("#" + record.type).prop('checked', 'checked')
+                if (record.type !== 'link') {
                     $("#linkEle").hide()
                 }
             }
-            if(record.title){
+            if (record.title) {
                 $("input[name='title']").val(record.title)
             }
-            if(record.link){
+            if (record.link) {
                 $("input[name='link']").val(record.link)
             }
 
@@ -108,7 +108,7 @@
             </div>
             <div class="flex flex-row gap-2 items-center">
                 <label for="title" class="font-bold">标题</label>
-                <input type="text" id="title" name="title" class="input flex-1" autocomplete="off" />
+                <input type="text" id="title" name="title" class="input flex-1" autocomplete="off"/>
             </div>
 
 
@@ -141,6 +141,12 @@
                 <label for="linkUrl" class="font-bold">链接</label>
                 <input type="text" id="linkUrl" name="link" class="input flex-1" autocomplete="off"/>
             </div>
+            {{if and (not (eq $.userinfo nil)) (eq $.userinfo.Role "admin")}}
+                <div class="flex flex-row gap-2 items-center">
+                    <label for="top" class="font-bold">置顶</label>
+                    <input type="checkbox" id="top" name="top" {{if and .post (gt .post.Top 0) }}checked{{end}}/>
+                </div>
+            {{end}}
             <div class="flex flex-row gap-2 items-center " id="content">
                 <textarea
                         name="content"

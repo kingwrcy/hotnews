@@ -95,6 +95,10 @@ func (u *UserHandler) Logout(c *gin.Context) {
 func (u *UserHandler) Asks(c *gin.Context) {
 	userinfo := GetCurrentUser(c)
 	username := c.Param("username")
+	p := c.DefaultQuery("p", "1")
+	page := cast.ToInt(p)
+	size := 10
+
 	var user model.TbUser
 	if err := u.db.Preload(clause.Associations).Where("username= ?", username).First(&user).Error; err == gorm.ErrRecordNotFound {
 		c.HTML(200, "profile.gohtml", OutputCommonSession(u.db, c, gin.H{
@@ -111,11 +115,19 @@ func (u *UserHandler) Asks(c *gin.Context) {
 	var invitedUsername string
 	u.db.Model(&model.TbInviteRecord{}).Select("username").Where("invitedUsername = ?", user.Username).First(&invitedUsername)
 
+	var total int64
 	var posts []model.TbPost
-	u.db.Model(&model.TbPost{}).Preload(clause.Associations).
-		Where("user_id = ? and status ='Active' and type = 'ask'", user.ID).
-		Order("created_at desc").
+
+	tx := u.db.Model(&model.TbPost{}).Preload(clause.Associations).
+		Where("user_id = ? and status ='Active' and type = 'ask'", user.ID)
+	tx.Count(&total)
+	tx.Order("created_at desc").Offset((cast.ToInt(page) - 1) * size).Limit(size).
 		Find(&posts)
+	totalPage := total / cast.ToInt64(size)
+
+	if total%cast.ToInt64(size) > 0 {
+		totalPage = totalPage + 1
+	}
 
 	c.HTML(200, "profile.gohtml", OutputCommonSession(u.db, c, gin.H{
 		"selected":        "mine",
@@ -124,11 +136,19 @@ func (u *UserHandler) Asks(c *gin.Context) {
 		"posts":           posts,
 		"inviteRecords":   inviteRecords,
 		"invitedUsername": invitedUsername,
+		"totalPage":       totalPage,
+		"total":           total,
+		"hasNext":         cast.ToInt64(page) < totalPage,
+		"hasPrev":         page > 1,
+		"currentPage":     cast.ToInt(page),
 	}))
 }
 
 func (u *UserHandler) Links(c *gin.Context) {
 	userinfo := GetCurrentUser(c)
+	p := c.DefaultQuery("p", "1")
+	page := cast.ToInt(p)
+	size := 10
 
 	username := c.Param("username")
 	var user model.TbUser
@@ -147,11 +167,20 @@ func (u *UserHandler) Links(c *gin.Context) {
 	var invitedUsername string
 	u.db.Model(&model.TbInviteRecord{}).Select("username").Where("invitedUsername = ?", user.Username).First(&invitedUsername)
 
+	var total int64
 	var posts []model.TbPost
-	u.db.Model(&model.TbPost{}).Preload(clause.Associations).
-		Where("user_id = ? and status ='Active' and type = 'link'", user.ID).
-		Order("created_at desc").
+	tx := u.db.Model(&model.TbPost{}).Preload(clause.Associations).
+		Where("user_id = ? and status ='Active' and type = 'link'", user.ID)
+
+	tx.Count(&total)
+	tx.Order("created_at desc").Offset((cast.ToInt(page) - 1) * size).Limit(size).
 		Find(&posts)
+
+	totalPage := total / (cast.ToInt64(size))
+
+	if total%(cast.ToInt64(size)) > 0 {
+		totalPage = totalPage + 1
+	}
 
 	c.HTML(200, "profile.gohtml", OutputCommonSession(u.db, c, gin.H{
 		"selected":        "mine",
@@ -160,6 +189,11 @@ func (u *UserHandler) Links(c *gin.Context) {
 		"posts":           posts,
 		"inviteRecords":   inviteRecords,
 		"invitedUsername": invitedUsername,
+		"totalPage":       totalPage,
+		"total":           total,
+		"hasNext":         cast.ToInt64(page) < totalPage,
+		"hasPrev":         page > 1,
+		"currentPage":     cast.ToInt(page),
 	}))
 }
 
@@ -172,7 +206,6 @@ func (u *UserHandler) ToMessage(c *gin.Context) {
 	size := 25
 
 	u.db.Where("to_user_id = ?", userinfo.ID).Count(&total)
-	log.Printf("total to message :%d", total)
 	u.db.Where("to_user_id = ?", userinfo.ID).Limit(size).Offset((page - 1) * size).
 		Order("created_at desc").Find(&messages)
 
@@ -209,6 +242,9 @@ func (u *UserHandler) SetSingleRead(c *gin.Context) {
 
 func (u *UserHandler) Comments(c *gin.Context) {
 	userinfo := GetCurrentUser(c)
+	p := c.DefaultQuery("p", "1")
+	page := cast.ToInt(p)
+	size := 10
 
 	username := c.Param("username")
 	var user model.TbUser
@@ -226,13 +262,22 @@ func (u *UserHandler) Comments(c *gin.Context) {
 	}
 
 	var invitedUsername string
+	var total int64
+
 	u.db.Model(&model.TbInviteRecord{}).Select("username").Where("invitedUsername = ?", user.Username).First(&invitedUsername)
 	var comments []model.TbComment
-	u.db.Model(&model.TbComment{}).
+	tx := u.db.Model(&model.TbComment{}).
 		Preload("User").
-		Where("user_id = ? ", user.ID).
-		Order("created_at desc").
+		Where("user_id = ? ", user.ID)
+	tx.Count(&total)
+	tx.Order("created_at desc").Offset((cast.ToInt(page) - 1) * size).Limit(size).
 		Find(&comments)
+
+	totalPage := total / (cast.ToInt64(size))
+
+	if total%(cast.ToInt64(size)) > 0 {
+		totalPage = totalPage + 1
+	}
 
 	c.HTML(200, "profile.gohtml", OutputCommonSession(u.db, c, gin.H{
 		"selected":        "mine",
@@ -241,6 +286,11 @@ func (u *UserHandler) Comments(c *gin.Context) {
 		"comments":        comments,
 		"inviteRecords":   inviteRecords,
 		"invitedUsername": invitedUsername,
+		"totalPage":       totalPage,
+		"total":           total,
+		"hasNext":         cast.ToInt64(page) < totalPage,
+		"hasPrev":         page > 1,
+		"currentPage":     cast.ToInt(page),
 	}))
 }
 

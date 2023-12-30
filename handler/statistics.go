@@ -26,6 +26,11 @@ func NewStatisticsHandler(injector *do.Injector) (*StatisticsHandler, error) {
 }
 
 func (s *StatisticsHandler) Query(c *gin.Context) {
+	userinfo := GetCurrentUser(c)
+	if userinfo == nil || userinfo.Role != "admin" {
+		c.Redirect(302, "/")
+		return
+	}
 	start, startExist := c.GetQuery("start")
 	if !startExist {
 		start = time.Now().Format("2006-01-02")

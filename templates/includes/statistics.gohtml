@@ -1,4 +1,121 @@
-{{ define "title"}}<title>统计分析</title>{{end}}
+{{ define "title"}}<title>统计分析</title>
+<script src="https://cdn.jsdelivr.net/npm/echarts@5.4.3/dist/echarts.min.js"></script>
+
+<script>
+    $(function () {
+        const myChart = echarts.init(document.getElementById('main'));
+        const countryChart = echarts.init(document.getElementById('country'));
+        const referChart = echarts.init(document.getElementById('refer'));
+
+        setTimeout(() => {
+            let $main = $("#main");
+            let $country = $("#country");
+            let $refer = $("#refer");
+            const w = $main.parent().width()
+            $main.css('width', w)
+            $country.css('width', w)
+            $refer.css('width', w)
+            myChart.resize()
+            countryChart.resize()
+            referChart.resize()
+        }, 200)
+
+        const option = {
+            title: {
+                text: '独立IP统计',
+                left: 'center'
+            },
+            "xAxis": {
+                "name": "日期",
+                "type": "category",
+                "data": {{.xAxis}}
+            },
+            "yAxis": {
+                "name": "IP数量",
+                "type": "value"
+            },
+            "series": [
+                {
+                    "data": {{.yAxis}},
+                    "type": "line",
+                    "smooth": true,
+                    "itemStyle": {"normal": {"label": {"show": true}}}
+                }
+            ]
+        }
+        myChart.setOption(option);
+
+
+        const countryChartOption = {
+            title: {
+                text: '国家统计',
+                left: 'center'
+            },
+            tooltip: {
+                trigger: 'item'
+            },
+            legend: {
+                orient: 'vertical',
+                left: 'left'
+            },
+            series: [
+                {
+                    name: '来自国家',
+                    type: 'pie',
+                    radius: '50%',
+                    data: {{.countryData}},
+                    emphasis: {
+                        itemStyle: {
+                            shadowBlur: 10,
+                            shadowOffsetX: 0,
+                            shadowColor: 'rgba(0, 0, 0, 0.5)'
+                        }
+                    }
+                }
+            ]
+        };
+
+        countryChart.setOption(countryChartOption)
+
+        const referChartOption = {
+            title: {
+                text: '来源统计',
+                left: 'center'
+            },
+            tooltip: {
+                trigger: 'item'
+            },
+            legend: {
+                orient: 'vertical',
+                left: 'left'
+            },
+            series: [
+                {
+                    name: '来源于',
+                    type: 'pie',
+                    radius: '50%',
+                    data: {{.referData}},
+                    emphasis: {
+                        itemStyle: {
+                            shadowBlur: 10,
+                            shadowOffsetX: 0,
+                            shadowColor: 'rgba(0, 0, 0, 0.5)'
+                        }
+                    }
+                }
+            ]
+        };
+
+        referChart.setOption(referChartOption)
+
+        window.onresize = function () {
+            myChart.resize();
+            countryChart.resize();
+            referChart.resize();
+        }
+    })
+</script>
+{{end}}
 
 {{define "content"}}
     <form method="get" action="/statistics">
@@ -18,53 +135,7 @@
         </div>
     </form>
 
-    <div>
-        <span class="fw-bold">独立IP总计</span>:{{.total}}
-    </div>
-    <hr class="my-4">
-    <div class="my-2 fw-bold">国家分类:</div>
-    <hr class="my-4">
-    {{range $day, $item :=.countryMapList}}
-        <table class="w-full mytable my-4" style="border-collapse: collapse; ">
-            <thead>
-            <tr>
-                <th>日期</th>
-                <th>国家</th>
-                <th>数量</th>
-            </tr>
-            </thead>
-            <tbody>
-            {{range $item}}
-                <tr>
-                    <td class="w-1/5">{{ $day }}</td>
-                    <td class="w-3/5">{{.country}}</td>
-                    <td>{{.total}}</td>
-                </tr>
-            {{end}}
-            </tbody>
-        </table>
-    {{end}}
-
-    <div class="my-2 fw-bold mt-4">来源分类:</div>
-    <hr class="my-4">
-    {{range $day, $item :=.referMapList}}
-        <table class="w-full mytable my-4" style="border-collapse: collapse; ">
-            <thead>
-            <tr>
-                <th>日期</th>
-                <th>来源</th>
-                <th>数量</th>
-            </tr>
-            </thead>
-            <tbody>
-            {{range $item}}
-                <tr>
-                    <td class="w-1/5">{{ $day }}</td>
-                    <td class="w-3/5">{{.refer}}</td>
-                    <td>{{.total}}</td>
-                </tr>
-            {{end}}
-            </tbody>
-        </table>
-    {{end}}
+    <div id="main" class="my-4" style="width:800px;height:400px;"></div>
+    <div id="country" class="my-4" style="width:800px;height:400px;"></div>
+    <div id="refer" class="my-4" style="width:800px;height:400px;"></div>
 {{end}}

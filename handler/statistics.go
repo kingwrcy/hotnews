@@ -2,6 +2,7 @@ package handler
 
 import (
 	"crypto/sha256"
+	"encoding/json"
 	"fmt"
 	"github.com/gin-gonic/gin"
 	"github.com/kingwrcy/hn/model"
@@ -9,6 +10,7 @@ import (
 	"github.com/samber/do"
 	"github.com/spf13/cast"
 	"gorm.io/gorm"
+	"html/template"
 	"strings"
 	"time"
 )
@@ -33,48 +35,47 @@ func (s *StatisticsHandler) Query(c *gin.Context) {
 	}
 	start, startExist := c.GetQuery("start")
 	if !startExist {
-		start = time.Now().Format("2006-01-02")
+		start = time.Now().AddDate(0, 0, -7).Format("2006-01-02")
 	}
 	end, endExist := c.GetQuery("end")
 	if !endExist {
-		end = time.Now().Add(1 * time.Hour * 24).Format("2006-01-02")
+		end = time.Now().Format("2006-01-02")
 	}
-	var total int64
+	var countMapList []map[string]interface{}
 	var countryMapList []map[string]interface{}
 	var referMapList []map[string]interface{}
-	s.db.Model(&model.TbStatistics{}).Where("date(created_at) between date(?) and date(?)", start, end).Count(&total)
-	s.db.Model(&model.TbStatistics{}).Select("country,count(1) as total,DATE_FORMAT(created_at,'%Y-%m-%d') as day").
-		Where("date(created_at) between date(?) and date(?)", start, end).Group("country,DATE_FORMAT(created_at,'%Y-%m-%d')").
+	s.db.Model(&model.TbStatistics{}).Select("count(1) as total,DATE_FORMAT(created_at,'%Y-%m-%d') as day").
+		Where("date(created_at) between date(?) and date(?)", start, end).
+		Group("DATE_FORMAT(created_at,'%Y-%m-%d')").Order("DATE_FORMAT(created_at,'%Y-%m-%d') asc").Scan(&countMapList)
+	s.db.Model(&model.TbStatistics{}).Select("country as name,count(1) as value").
+		Where("date(created_at) between date(?) and date(?)", start, end).Group("country").
 		Order("country").Scan(&countryMapList)
-	s.db.Model(&model.TbStatistics{}).Select("refer,count(1) as total,DATE_FORMAT(created_at,'%Y-%m-%d') as day").
-		Where("date(created_at) between date(?) and date(?)", start, end).Group("refer,DATE_FORMAT(created_at,'%Y-%m-%d')").
-		Order("refer").Scan(&referMapList)
+	s.db.Model(&model.TbStatistics{}).Select("SUBSTRING_INDEX(SUBSTRING_INDEX(SUBSTRING_INDEX(SUBSTRING_INDEX(refer, '/', 3), '://', -1), '/', 1), '?', 1) as name,count(1) as value").
+		Where("date(created_at) between date(?) and date(?)", start, end).
+		Group("SUBSTRING_INDEX(SUBSTRING_INDEX(SUBSTRING_INDEX(SUBSTRING_INDEX(refer, '/', 3), '://', -1), '/', 1), '?', 1)").
+		Scan(&referMapList)
 
-	finalCountryMapList := map[string][]map[string]interface{}{}
-	finalReferMapList := map[string][]map[string]interface{}{}
+	var yv []int
+	var xv []string
+	for _, m := range countMapList {
+		temp := cast.ToInt(m["total"])
+		xv = append(xv, cast.ToString(m["day"]))
+		yv = append(yv, temp)
+	}
 
-	for _, item := range countryMapList {
-		day := cast.ToString(item["day"])
-		if _, ok := finalCountryMapList[day]; !ok {
-			finalCountryMapList[day] = []map[string]interface{}{}
-		}
-		finalCountryMapList[day] = append(finalCountryMapList[day], item)
-	}
-	for _, item := range referMapList {
-		day := cast.ToString(item["day"])
-		if _, ok := finalReferMapList[day]; !ok {
-			finalReferMapList[day] = []map[string]interface{}{}
-		}
-		finalReferMapList[day] = append(finalReferMapList[day], item)
-	}
+	xBuf, _ := json.Marshal(xv)
+	yBuf, _ := json.Marshal(yv)
+	countryMapListJson, _ := json.Marshal(countryMapList)
+	referMapListJson, _ := json.Marshal(referMapList)
 
 	c.HTML(200, "statistics.gohtml", OutputCommonSession(s.db, c, gin.H{
-		"selected":       "statistics",
-		"total":          total,
-		"countryMapList": finalCountryMapList,
-		"referMapList":   finalReferMapList,
-		"startDate":      start,
-		"endDate":        end,
+		"selected":    "statistics",
+		"referData":   template.JS(referMapListJson),
+		"startDate":   start,
+		"endDate":     end,
+		"xAxis":       template.JS(xBuf),
+		"yAxis":       template.JS(yBuf),
+		"countryData": template.JS(countryMapListJson),
 	}))
 }
 

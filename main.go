@@ -9,6 +9,7 @@ import (
 	"github.com/gin-contrib/sessions"
 	"github.com/gin-contrib/sessions/cookie"
 	"github.com/gin-gonic/gin"
+	"github.com/joho/godotenv"
 	"github.com/kingwrcy/hn/handler"
 	"github.com/kingwrcy/hn/middleware"
 	"github.com/kingwrcy/hn/model"
@@ -19,7 +20,6 @@ import (
 	"html/template"
 	"io"
 	"io/fs"
-	"net/http"
 	"os"
 	"path/filepath"
 	"strings"
@@ -49,10 +49,12 @@ func timeAgo(target time.Time) string {
 //go:embed templates
 var templatesFS embed.FS
 
-//go:embed static
-var staticFS embed.FS
-
 func main() {
+	err := godotenv.Load()
+	if err != nil {
+		log.Fatal("Error loading .env file")
+	}
+
 	injector := do.New()
 
 	do.Provide(injector, provider.NewAppConfig)
@@ -60,7 +62,7 @@ func main() {
 
 	db := do.MustInvoke[*gorm.DB](injector)
 	config := do.MustInvoke[*provider.AppConfig](injector)
-	err := db.AutoMigrate(&model.TbMessage{},
+	err = db.AutoMigrate(&model.TbMessage{},
 		&model.TbUser{}, &model.TbInviteRecord{},
 		&model.TbPost{}, &model.TbInspectLog{},
 		&model.TbComment{}, &model.TbTag{}, &model.TbStatistics{},
@@ -81,11 +83,11 @@ func main() {
 	if os.Getenv("GIN_MODE") == "release" {
 		ts, _ := fs.Sub(templatesFS, "templates")
 		engine.HTMLRender = loadTemplates(ts)
-		s, _ := fs.Sub(staticFS, "static")
-		engine.StaticFS("/static", http.FS(s))
+		//s, _ := fs.Sub(staticFS, "static")
+		//engine.StaticFS("/static", http.FS(s))
 	} else {
 		engine.HTMLRender = loadLocalTemplates("./templates")
-		engine.Static("/static", "./static")
+		//engine.Static("/static", "./static")
 	}
 
 	handler.Setup(injector, engine)

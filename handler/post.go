@@ -436,7 +436,7 @@ func QueryPosts(db *gorm.DB, request vo.QueryPostsRequest) gin.H {
 		tx.Where("t.name in (?)", request.Tags)
 	} else if request.OrderType == "index" {
 		tx.Where("not exists (select 1 from tb_post_tag pt,tb_tag t where t.id = pt.tb_tag_id and pt.tb_post_id = p.id and t.show_in_hot = 'N')")
-		tx.Where("p.created_at >= current_date() - interval 7 day and p.point > 0")
+		tx.Where("p.created_at >= current_date - interval '7 day' and p.point > 0")
 		tx.Order("p.top desc ,p.point desc,p.created_at desc")
 	} else if request.OrderType == "" {
 		tx.Where("not exists (select 1 from tb_post_tag pt,tb_tag t where t.id = pt.tb_tag_id and pt.tb_post_id = p.id and t.show_in_all = 'N')")

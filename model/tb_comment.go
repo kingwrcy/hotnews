@@ -8,7 +8,7 @@ type TbComment struct {
 	gorm.Model
 	UserID          uint `gorm:"column:user_id;type:int"`
 	User            TbUser
-	Content         string `gorm:"column:content;type:longtext"`
+	Content         string `gorm:"column:content;type:varchar"`
 	CID             string `gorm:"column:cid;type:varchar(20)"`
 	PostID          uint   `gorm:"column:post_id;type:int"`
 	Post            TbPost

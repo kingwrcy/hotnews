@@ -137,7 +137,7 @@ func OutputCommonSession(db *gorm.DB, c *gin.Context, h ...gin.H) gin.H {
 	var total int64
 	userinfo := GetCurrentUser(c)
 	if userinfo != nil {
-		db.Model(&model.TbMessage{}).Where("to_user_id = ? and `read` = 'N'", userinfo.ID).Count(&total)
+		db.Model(&model.TbMessage{}).Where("to_user_id = ? and read = 'N'", userinfo.ID).Count(&total)
 		result["unReadMessageCount"] = total
 	}
 	result["path"] = c.Request.URL.Path

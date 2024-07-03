@@ -13,7 +13,7 @@ type TbInviteRecord struct {
 	Code             string    `gorm:"column:code;type:varchar(30);unique"`
 	InvitedUsername  string    `gorm:"column:invitedUsername;type:varchar(30)"`
 	InvitedUserEmail string    `gorm:"column:invitedUserEmail;type:varchar(100)"`
-	InvalidAt        time.Time `gorm:"column:invalidAt;type:datetime"`
+	InvalidAt        time.Time `gorm:"column:invalidAt;type:timestamp"`
 	Status           string    `gorm:"column:status;type:varchar(20)"`
 }
 

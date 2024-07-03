@@ -41,15 +41,14 @@ func (u *UserHandler) Login(c *gin.Context) {
 	var user model.TbUser
 	if err := u.db.
 		Where("username = ?", request.Username).
-		First(&user).Error; err == gorm.ErrRecordNotFound {
+		First(&user).Error; errors.Is(err, gorm.ErrRecordNotFound) {
 
 		c.HTML(200, "login.gohtml", gin.H{
-			"msg":      "登录失败，用户名或者密码不正确 not exists",
+			"msg":      "登录失败，用户名或者密码不正确",
 			"selected": "login",
 		})
 		return
 	}
-	log.Printf("req is %+v", user)
 	if bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(request.Password)) != nil {
 		c.HTML(200, "login.gohtml", gin.H{
 			"msg":      "登录失败，用户名或者密码不正确",

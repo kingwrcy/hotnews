@@ -9,7 +9,7 @@ const TableNameTbMessage = "tb_message"
 
 type TbMessage struct {
 	gorm.Model
-	Content    string `gorm:"column:content;type:text;"`
+	Content    string `gorm:"column:content;type:varchar;"`
 	Read       string `gorm:"column:read;type:varchar(1)"`
 	FromUserID uint   `gorm:"column:from_user_id;type:int"`
 	FromUser   TbUser `gorm:"foreignKey:FromUserID"`

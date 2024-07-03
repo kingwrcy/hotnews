@@ -18,7 +18,7 @@ func StartPostTask(i *do.Injector) {
 		db := do.MustInvoke[*gorm.DB](i)
 
 		var posts []model.TbPost
-		db.Model(&model.TbPost{}).Where("created_at >= now() - interval 7 day and status = 'Active'").Scan(&posts)
+		db.Model(&model.TbPost{}).Where("created_at >= now() - interval '7 day' and status = 'Active'").Scan(&posts)
 		g := 1.80
 		for _, post := range posts {
 			var commentCount int64

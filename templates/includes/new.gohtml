@@ -30,6 +30,7 @@
                 autofocus: true,
                 locale: 'cn',
                 emoticonsEnabled: false,
+                height:'500px',
                 autoUpdate: true,
                 resizeEnabled: true,
                 resizeWidth: false,
@@ -57,8 +58,10 @@
             {{end}}
 
             {{if .post.Content}}
-            sceditor.instance(textarea).setWysiwygEditorValue("{{.post.Content}}")
-            sceditor.instance(textarea).updateOriginal();
+                setTimeout(()=>{
+                    sceditor.instance(textarea).setWysiwygEditorValue("{{.post.Content}}")
+                    sceditor.instance(textarea).updateOriginal();
+                },10)
             {{end}}
 
 
@@ -152,7 +155,7 @@
                         name="content"
                         id=""
                         cols="30"
-                        rows="10"
+                        rows="30"
                         class="input flex-1 w-full"
                 ></textarea>
             </div>

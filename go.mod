@@ -8,6 +8,7 @@ require (
 	github.com/gin-gonic/gin v1.10.0
 	github.com/ilyakaznacheev/cleanenv v1.5.0
 	github.com/jasonlvhit/gocron v0.0.1
+	github.com/joho/godotenv v1.5.1
 	github.com/mileusna/useragent v1.3.4
 	github.com/samber/do v1.6.0
 	github.com/spf13/cast v1.6.0
@@ -37,7 +38,6 @@ require (
 	github.com/jackc/puddle/v2 v2.2.1 // indirect
 	github.com/jinzhu/inflection v1.0.0 // indirect
 	github.com/jinzhu/now v1.1.5 // indirect
-	github.com/joho/godotenv v1.5.1 // indirect
 	github.com/json-iterator/go v1.1.12 // indirect
 	github.com/klauspost/cpuid/v2 v2.2.8 // indirect
 	github.com/leodido/go-urn v1.4.0 // indirect

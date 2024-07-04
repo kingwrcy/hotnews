@@ -11,9 +11,9 @@ type TbStatistics struct {
 	Target    string `gorm:"column:target;type:varchar(256)"`
 	Country   string `gorm:"column:country;type:varchar(64)"`
 	Device    string `gorm:"column:device;type:varchar(64)"`
-	Mobile    bool   `gorm:"column:mobile;type:int"`
-	Tablet    bool   `gorm:"column:tablet;type:int"`
-	Desktop   bool   `gorm:"column:desktop;type:int"`
+	Mobile    bool   `gorm:"column:mobile"`
+	Tablet    bool   `gorm:"column:tablet"`
+	Desktop   bool   `gorm:"column:desktop"`
 	CreatedAt time.Time
 	UpdatedAt time.Time
 }

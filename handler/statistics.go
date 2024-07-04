@@ -11,7 +11,6 @@ import (
 	"github.com/spf13/cast"
 	"gorm.io/gorm"
 	"html/template"
-	"log"
 	"strings"
 	"time"
 )
@@ -86,9 +85,6 @@ func (s *StatisticsHandler) Hit(c *gin.Context) {
 	var stat model.TbStatistics
 	xForwardFor := c.GetHeader("X-Forwarded-For")
 	userAgent := c.GetHeader("User-Agent")
-	realIP := c.GetHeader("X-Real-IP")
-	log.Printf("path:%s,ref:%s,xForwardFor:%s,userAgent:%s,realIP:%s", path, ref, xForwardFor, userAgent, realIP)
-
 	if !pathExist || !refExist || path == "" || xForwardFor == "" || userAgent == "" {
 		return
 	}

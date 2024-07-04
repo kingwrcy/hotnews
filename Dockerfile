@@ -24,4 +24,6 @@ ENV TZ Asia/Shanghai
 WORKDIR /app
 COPY --from=builder /app/hn /app/hn
 
+ENV GIN_MODE release
+
 CMD ["/app/hn"]

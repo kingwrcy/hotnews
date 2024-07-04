@@ -135,12 +135,12 @@ func (p PostHandler) Detail(c *gin.Context) {
 		if userinfo != nil {
 			subQuery := p.db.Table("tb_vote").Select("target_id").Where("tb_user_id = ? and type = 'COMMENT' and action ='UP'", uid)
 
-			p.db.Table("tb_comment c").Select("c.*,IF(vote.target_id IS NOT NULL, 1, 0) AS UpVoted").Joins("LEFT JOIN (?) AS vote ON c.id = vote.target_id", subQuery).
-				Preload("User").Where("post_id = ? and parent_comment_id is null", posts[0].ID).Find(&rootComments)
+			p.db.Table("tb_comment c").Select("c.*,CASE WHEN vote.target_id IS NOT NULL THEN 1 ELSE 0  END AS UpVoted").Joins("LEFT JOIN (?) AS vote ON c.id = vote.target_id", subQuery).
+				Preload("User").Where("post_id = ? and parent_comment_id is null", posts[0].ID).Order("created_at desc").Find(&rootComments)
 
 		} else {
 			p.db.Table("tb_comment c").Select("c.*").
-				Preload("User").Where("post_id = ? and parent_comment_id is null", posts[0].ID).
+				Preload("User").Where("post_id = ? and parent_comment_id is null", posts[0].ID).Order("created_at desc").
 				Find(&rootComments)
 
 		}
@@ -159,7 +159,7 @@ func buildCommentTree(comments *[]model.TbComment, db *gorm.DB, uid uint) {
 	for i := range *comments {
 		var children []model.TbComment
 		if uid > 0 {
-			db.Table("tb_comment c").Select("c.*,IF(vote.target_id IS NOT NULL, 1, 0) AS UpVoted").
+			db.Table("tb_comment c").Select("c.*,CASE WHEN vote.target_id IS NOT NULL THEN 1 ELSE 0  END AS UpVoted").
 				Joins("LEFT JOIN (?) AS vote ON c.id = vote.target_id", subQuery).Preload("User").Where("post_id = ? and parent_comment_id = ?", (*comments)[i].PostID, (*comments)[i].ID).Find(&children)
 		} else {
 			db.Model(&model.TbComment{}).
@@ -331,10 +331,10 @@ func (p PostHandler) AddComment(c *gin.Context) {
 		if err := tx.Save(&comment).Error; err != nil {
 			return err
 		}
-		if err := tx.Model(&model.TbPost{}).Where("id = ?", request.PostID).Update("commentCount", gorm.Expr("commentCount + 1")).Error; err != nil {
+		if err := tx.Model(&model.TbPost{}).Where("id = ?", request.PostID).Update("commentCount", gorm.Expr("\"commentCount\" + 1")).Error; err != nil {
 			return err
 		}
-		if err := tx.Model(&model.TbUser{}).Where("id = ?", userinfo.ID).Update("commentCount", gorm.Expr("commentCount + 1")).Error; err != nil {
+		if err := tx.Model(&model.TbUser{}).Where("id = ?", userinfo.ID).Update("commentCount", gorm.Expr("\"commentCount\" + 1")).Error; err != nil {
 			return err
 		}
 		if message.Content != "" {
@@ -427,7 +427,7 @@ func QueryPosts(db *gorm.DB, request vo.QueryPostsRequest) gin.H {
 	if request.Userinfo != nil {
 		subQuery := db.Table("tb_vote").Select("target_id").Where("tb_user_id = ? and type = 'POST' and action ='UP'", request.Userinfo.ID)
 
-		tx.Select("p.*,IF(vote.target_id IS NOT NULL, 1, 0) AS UpVoted")
+		tx.Select("p.*,CASE WHEN vote.target_id IS NOT NULL THEN 1 ELSE 0  END AS UpVoted")
 		tx.Joins("LEFT JOIN (?) AS vote ON p.id = vote.target_id", subQuery)
 	}
 	if len(request.Tags) > 0 {

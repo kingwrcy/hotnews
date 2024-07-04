@@ -221,7 +221,7 @@ func (u *UserHandler) SetAllRead(c *gin.Context) {
 		c.Redirect(302, "/u/login")
 		return
 	}
-	u.db.Model(&model.TbMessage{}).Where("to_user_id = ? and `read` = 'N'", userinfo.ID).Update("`read`", "Y")
+	u.db.Model(&model.TbMessage{}).Where("to_user_id = ? and read = 'N'", userinfo.ID).Update("read", "Y")
 	u.ToMessage(c)
 }
 
@@ -234,7 +234,7 @@ func (u *UserHandler) SetSingleRead(c *gin.Context) {
 
 	if id, ok := c.GetQuery("id"); ok {
 		log.Printf("get id %+v", id)
-		u.db.Model(&model.TbMessage{}).Where("id = ? and to_user_id = ? and `read` = 'N'", id, userinfo.ID).Update("`read`", "Y")
+		u.db.Model(&model.TbMessage{}).Where("id = ? and to_user_id = ? and read = 'N'", id, userinfo.ID).Update("read", "Y")
 	}
 	u.ToMessage(c)
 }
@@ -300,7 +300,7 @@ func (u *UserHandler) ToInvited(c *gin.Context) {
 		return
 	}
 	var invited model.TbInviteRecord
-	err := u.db.Where("code = ? and invalidAt >= now() and status = 'ENABLE'", code).First(&invited).Error
+	err := u.db.Where("code = ? and \"invalidAt\" >= now() and status = 'ENABLE'", code).First(&invited).Error
 	if err == gorm.ErrRecordNotFound {
 		c.HTML(200, "toBeInvited.gohtml", OutputCommonSession(u.db, c, gin.H{
 			"codeIsInvalid": true,
@@ -331,7 +331,7 @@ func (u *UserHandler) DoInvited(c *gin.Context) {
 
 	var invited model.TbInviteRecord
 	var user model.TbUser
-	u.db.Where("code = ? and invalidAt >= now() and status = 'ENABLE'", code).First(&invited)
+	u.db.Where("code = ? and \"invalidAt\" >= now() and status = 'ENABLE'", code).First(&invited)
 	if &invited == nil {
 		c.HTML(200, "toBeInvited.gohtml", OutputCommonSession(u.db, c, gin.H{
 			"codeIsInvalid": true,
@@ -386,7 +386,7 @@ func (u *UserHandler) DoInvited(c *gin.Context) {
 	user.PostCount = 0
 
 	var totalUsers int64
-	u.db.Table("tb_user").Count(&totalUsers)
+	u.db.Table("tb_user").Where("id <> 999999999").Count(&totalUsers)
 	if totalUsers == 0 {
 		user.Role = "admin"
 	}
@@ -417,11 +417,7 @@ func (u *UserHandler) DoInvited(c *gin.Context) {
 				return err
 			}
 		}
-		err = tx.Save(&inviteRecords).Error
-		if err != nil {
-			return err
-		}
-		return nil
+		return tx.Save(&inviteRecords).Error
 	})
 	if errors.Is(err, gorm.ErrDuplicatedKey) {
 		c.HTML(200, "toBeInvited.gohtml", OutputCommonSession(u.db, c, gin.H{
@@ -435,7 +431,7 @@ func (u *UserHandler) DoInvited(c *gin.Context) {
 		}))
 		return
 	}
-	c.HTML(200, "toBeInvited.gohtml", OutputCommonSession(u.db, c, gin.H{
+	c.HTML(200, "login.gohtml", OutputCommonSession(u.db, c, gin.H{
 		"msg": "注册成功,去登录吧",
 	}))
 }
@@ -447,7 +443,7 @@ func (u *UserHandler) ToList(c *gin.Context) {
 		return
 	}
 	var users []model.TbUser
-	u.db.Order("id desc").Find(&users)
+	u.db.Where("ID <> 999999999").Order("id desc").Find(&users)
 	c.HTML(200, "users.gohtml", OutputCommonSession(u.db, c, gin.H{
 		"selected": "users",
 		"users":    users,

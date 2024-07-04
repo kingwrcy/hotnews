@@ -74,6 +74,9 @@ func main() {
 		log.Printf("升级数据库异常,启动失败.%s", err)
 		return
 	}
+
+	initSystemUser(db)
+
 	gob.Register(vo.Userinfo{})
 	engine := gin.Default()
 
@@ -196,4 +199,27 @@ func loadTemplates(templatesDir fs.FS) multitemplate.Renderer {
 		r.AddFromStringsFuncs(filepath.Base(include), templateFun(), templateContents...)
 	}
 	return r
+}
+
+func initSystemUser(db *gorm.DB) {
+	var systemUserExists int64
+	db.Table("tb_user").Where("id=999999999").Count(&systemUserExists)
+	if systemUserExists == 0 {
+		var systemUser = model.TbUser{
+			Username:        "System",
+			Password:        "",
+			Role:            "",
+			Email:           "",
+			Bio:             "",
+			CommentCount:    0,
+			PostCount:       0,
+			Status:          "",
+			Posts:           nil,
+			UpVotedPosts:    nil,
+			Comments:        nil,
+			UpVotedComments: nil,
+		}
+		systemUser.ID = 999999999
+		db.Save(&systemUser)
+	}
 }

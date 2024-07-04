@@ -133,7 +133,6 @@ func OutputCommonSession(db *gorm.DB, c *gin.Context, h ...gin.H) gin.H {
 			result[k1] = v1
 		}
 	}
-
 	var total int64
 	userinfo := GetCurrentUser(c)
 	if userinfo != nil {

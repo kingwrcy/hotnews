@@ -1,7 +1,6 @@
 {{ define "title"}}<title>编辑标签-{.tag.Name}</title>
-<link rel="stylesheet"
-      href="https://cdn.mblog.club/hotnews/css/sumoselect.min.css">
-<script src="https://cdn.mblog.club/hotnews/js/jquery.sumoselect.min.js"></script>
+<link rel="stylesheet" href='{{getStaticPath "/css/sumoselect.min.css"}}'>
+<script src='{{getStaticPath "/js/jquery.sumoselect.min.js"}}'></script>
 <script>
     $(function () {
         const selectBox = $('.selectBox')

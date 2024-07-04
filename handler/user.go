@@ -385,6 +385,12 @@ func (u *UserHandler) DoInvited(c *gin.Context) {
 	user.CommentCount = 0
 	user.PostCount = 0
 
+	var totalUsers int64
+	u.db.Table("tb_user").Count(&totalUsers)
+	if totalUsers == 0 {
+		user.Role = "admin"
+	}
+
 	var inviteRecords []model.TbInviteRecord
 	var count = 0
 	for count < 3 {

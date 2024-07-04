@@ -5,9 +5,9 @@
     <meta name="viewport"
           content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
-    <link rel="icon" href="https://cdn.mblog.club/hotnews/favicon.svg"/>
-    <link rel="stylesheet" href="https://cdn.mblog.club/hotnews/css/normalize.min.css">
-    <link rel="stylesheet" href="https://cdn.mblog.club/hotnews/css/main.css">
+    <link rel="icon" href='{{getStaticPath "/favicon.svg"}}'/>
+    <link rel="stylesheet" href='{{getStaticPath "/css/normalize.min.css"}}'>
+    <link rel="stylesheet" href='{{getStaticPath "/css/main.css"}}'>
     <script>
         // pass unocss options
         window.__unocss = {
@@ -26,9 +26,9 @@
             },
         }
     </script>
-    <script src="https://cdn.mblog.club/hotnews/js/unocss.js"></script>
-    <script src="https://cdn.mblog.club/hotnews/js/jquery.min.js"></script>
-    <script src="https://cdn.mblog.club/hotnews/js/main.js"></script>
+    <script src='{{getStaticPath "/js/unocss.js"}}'></script>
+    <script src='{{getStaticPath "/js/jquery.min.js"}}'></script>
+    <script src='{{getStaticPath "/js/main.js"}}'></script>
     {{ template "title" . }}
     <style>
         body:hover{

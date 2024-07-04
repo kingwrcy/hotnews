@@ -20,9 +20,9 @@ import (
 	"html/template"
 	"io"
 	"io/fs"
+	"net/http"
 	"os"
 	"path/filepath"
-	"strings"
 	"time"
 
 	"gorm.io/gorm"
@@ -45,6 +45,9 @@ func timeAgo(target time.Time) string {
 		return fmt.Sprintf("%d年前", duration/(24*time.Hour*365))
 	}
 }
+
+//go:embed static
+var staticFS embed.FS
 
 //go:embed templates
 var templatesFS embed.FS
@@ -83,11 +86,11 @@ func main() {
 	if os.Getenv("GIN_MODE") == "release" {
 		ts, _ := fs.Sub(templatesFS, "templates")
 		engine.HTMLRender = loadTemplates(ts)
-		//s, _ := fs.Sub(staticFS, "static")
-		//engine.StaticFS("/static", http.FS(s))
+		s, _ := fs.Sub(staticFS, "static")
+		engine.StaticFS("/static", http.FS(s))
 	} else {
 		engine.HTMLRender = loadLocalTemplates("./templates")
-		//engine.Static("/static", "./static")
+		engine.Static("/static", "./static")
 	}
 
 	handler.Setup(injector, engine)
@@ -100,8 +103,7 @@ func main() {
 
 func templateFun() template.FuncMap {
 	return template.FuncMap{
-		"StringsJoin": strings.Join,
-		"timeAgo":     timeAgo,
+		"timeAgo": timeAgo,
 		"unEscapeHTML": func(content string) template.HTML {
 			return template.HTML(content)
 		},
@@ -127,6 +129,13 @@ func templateFun() template.FuncMap {
 				dict[key] = values[i+1]
 			}
 			return dict, nil
+		},
+		"getStaticPath": func(resource string) string {
+			prefix := os.Getenv("STATIC_CDN_PREFIX")
+			if prefix == "" {
+				return "/static" + resource
+			}
+			return prefix + resource
 		},
 	}
 }

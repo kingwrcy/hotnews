@@ -44,15 +44,15 @@ func (s *StatisticsHandler) Query(c *gin.Context) {
 	var countMapList []map[string]interface{}
 	var countryMapList []map[string]interface{}
 	var referMapList []map[string]interface{}
-	s.db.Model(&model.TbStatistics{}).Select("count(1) as total,DATE_FORMAT(created_at,'%Y-%m-%d') as day").
-		Where("date(created_at) between date(?) and date(?)", start, end).
-		Group("DATE_FORMAT(created_at,'%Y-%m-%d')").Order("DATE_FORMAT(created_at,'%Y-%m-%d') asc").Scan(&countMapList)
+	s.db.Model(&model.TbStatistics{}).Select(" COUNT(1) as total, to_char(created_at, 'YYYY-MM-DD') as day").
+		Where("created_at between ? and ?", start, end).
+		Group("day").Order("day asc").Scan(&countMapList)
 	s.db.Model(&model.TbStatistics{}).Select("country as name,count(1) as value").
-		Where("date(created_at) between date(?) and date(?)", start, end).Group("country").
-		Order("country").Scan(&countryMapList)
-	s.db.Model(&model.TbStatistics{}).Select("SUBSTRING_INDEX(SUBSTRING_INDEX(SUBSTRING_INDEX(SUBSTRING_INDEX(refer, '/', 3), '://', -1), '/', 1), '?', 1) as name,count(1) as value").
-		Where("date(created_at) between date(?) and date(?)", start, end).
-		Group("SUBSTRING_INDEX(SUBSTRING_INDEX(SUBSTRING_INDEX(SUBSTRING_INDEX(refer, '/', 3), '://', -1), '/', 1), '?', 1)").
+		Where("created_at between ? and ?", start, end).Group("name").
+		Order("name").Scan(&countryMapList)
+	s.db.Model(&model.TbStatistics{}).Select("SUBSTRING(refer FROM '(^[a-z]+://[^/]+)') AS name,count(1) as value").
+		Where("created_at between ? and ?", start, end).
+		Group("name").
 		Scan(&referMapList)
 
 	var yv []int
@@ -93,6 +93,7 @@ func (s *StatisticsHandler) Hit(c *gin.Context) {
 	if len(arr) == 0 {
 		return
 	}
+
 	ua := useragent.Parse(userAgent)
 	if ua.Bot {
 		return

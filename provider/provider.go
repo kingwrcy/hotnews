@@ -9,10 +9,11 @@ import (
 )
 
 type AppConfig struct {
-	Port         int    `env:"PORT" env-default:"7832"`
-	DB           string `env:"DB" env-default:"/app/data.sqlite"`
-	CookieSecret string `env:"COOKIE_SECRET" env:""`
-	RedisAddress string `env:"REDIS_ADDRESS" env:"localhost:6379"`
+	Port            int    `env:"PORT" env-default:"32919"`
+	DB              string `env:"DB"`
+	CookieSecret    string `env:"COOKIE_SECRET" env:"COOKIE_SECRET" env-default:"UbnpjqcvDJ8mDCB"`
+	StaticCdnPrefix string `env:"COOKIE_SECRET" env:"STATIC_CDN_PREFIX" env-default:"/static"`
+	RedisAddress    string `env:"REDIS_ADDRESS" env:"localhost:6379"`
 }
 
 func NewRepository(i *do.Injector) (*gorm.DB, error) {

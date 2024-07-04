@@ -39,7 +39,7 @@ func (s *StatisticsHandler) Query(c *gin.Context) {
 	}
 	end, endExist := c.GetQuery("end")
 	if !endExist {
-		end = time.Now().Format("2006-01-02")
+		end = time.Now().AddDate(0, 0, 1).Format("2006-01-02")
 	}
 	var countMapList []map[string]interface{}
 	var countryMapList []map[string]interface{}

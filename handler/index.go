@@ -422,14 +422,12 @@ func (i *IndexHandler) ToSettings(c *gin.Context) {
 		saveSettingsRequest.RegMode = "hotnews"
 		c.HTML(200, "settings.gohtml", OutputCommonSession(i.db, c, gin.H{
 			"selected": "settings",
-			"settings": saveSettingsRequest,
 		}))
 		return
 	}
 
 	c.HTML(200, "settings.gohtml", OutputCommonSession(i.db, c, gin.H{
 		"selected": "settings",
-		"settings": settings.Content,
 	}))
 }
 

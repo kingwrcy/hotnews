@@ -24,7 +24,7 @@
                 <tr>
                     <td>{{.CreatedAt | timeAgo}}</td>
                     <td>{{if eq .FromUserID 999999999}}系统{{else}}111{{end}}</td>
-                    <td style="max-width:300px;">{{.Content  | unEscapeHTML}}</td>
+                    <td style="max-width:300px;">{{.Content  | html}}</td>
                     <td>{{if eq .Read "N"}}<a class="btn" href="/u/message/setSingleRead?id={{.ID}}">已读</a>{{end}}
                     </td>
                 </tr>

@@ -79,6 +79,8 @@ func (u *UserHandler) Login(c *gin.Context) {
 }
 
 func (u *UserHandler) ToLogin(c *gin.Context) {
+	var settings model.TbSettings
+	u.db.First(&settings)
 	c.HTML(200, "login.gohtml", OutputCommonSession(u.db, c, gin.H{
 		"selected": "login",
 	}))
@@ -301,7 +303,6 @@ func (u *UserHandler) ToInvited(c *gin.Context) {
 	if settings.Content.RegMode == "shutdown" {
 		c.HTML(200, "toBeInvited.gohtml", OutputCommonSession(u.db, c, gin.H{
 			"selected": "/",
-			"settings": settings.Content,
 		}))
 		return
 	}

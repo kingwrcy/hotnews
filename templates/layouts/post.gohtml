@@ -1,8 +1,8 @@
 {{define "post"}}
 
-    <div class="flex flex-col ">
+    <div class="x-post-list flex flex-col gap-2  ">
         {{range  $index, $post := .posts}}
-            <div class="flex flex-row gap-4 flex-1 items-start p-1">
+            <div class="x-post-item flex flex-row gap-4 flex-1 items-start ">
                 <div class="flex flex-col items-center cursor-pointer upVoteParent ">
                     <a class="text-coolGray  {{if $post.UpVoted}}text-red{{end}}"
                        href="{{if $post.UpVoted}}javascript:void(0);{{else}}/vote?id={{$post.Pid}}&action=u&type=POST{{end}}">
@@ -15,7 +15,7 @@
                 <div class="flex flex-col flex-1 ">
                     <div class="flex flex-row gap-2 items-center ">
 
-                        <div class="text-sm {{if eq $.selected "detail"}}fw-bold{{end}} hover:text-gray lg:max-w-4/5 text-[#06c] fw-bold">
+                        <div class="x-post-title text-sm {{if eq $.selected "detail"}}fw-bold{{end}} hover:text-gray lg:max-w-4/5 text-[#06c] fw-bold">
                             {{ if eq $post.Type "ask"}}
                                 <a href="/p/{{$post.Pid}}">{{$post.Title}}</a>
                             {{else}}
@@ -35,7 +35,7 @@
 
                         <div class="lg:flex flex-row gap-1 items-center text-xs hidden">
                             {{range $post.Tags}}
-                                <div class=" border px-1.5 rounded {{.CssClass}} b-solid b-coolGray cursor-pointer ">
+                                <div class="x-post-tag  {{.CssClass}} ">
                                     <a href="/t/{{.Name}}">{{.Name}}</a></div>
                             {{end}}
                             {{ if eq $post.Type "ask"}}
@@ -50,7 +50,7 @@
                     </div>
                     <div class="flex flex-row gap-1 items-center text-xs lg:hidden my-1">
                         {{range $post.Tags}}
-                            <div class=" border px-1.5 rounded {{.CssClass}} b-solid b-coolGray cursor-pointer ">
+                            <div class=" x-post-tag {{.CssClass}} ">
                                 <a href="/t/{{.Name}}">{{.Name}}</a></div>
                         {{end}}
                         {{ if eq $post.Type "ask"}}
@@ -62,16 +62,8 @@
                             <a href="/d/{{$post.Domain}}" class="hover:text-hover">{{$post.Domain}}</a>
                         </div>
                     </div>
-                    <div class="flex flex-row gap2 items-center text-xs text-gray">
-                        <!--       <div class="avatar">
-                <a href="/u/profile/{{$post.User.Username}}"
-                >
-                    <img class="w-5 h-5 rounded" src="https://i.pravatar.cc/30?u={{$post.User.Email}}" alt=""
-                    />
+                    <div class="x-post-toolbar flex flex-row gap2 items-center text-xs text-gray">
 
-                </a>
-            </div>
-            -->
                         <div><a class="cursor-pointer  hover:text-hover"
                                 href="/u/profile/{{$post.User.Username}}">{{$post.User.Username}}</a></div>
                         <div class="when">{{$post.CreatedAt | timeAgo}}</div>
@@ -93,7 +85,7 @@
                     </div>
                     {{ if eq $.selected "detail"}}
                         <div class="mt-2 text-sm content">
-                            {{$post.Content | unEscapeHTML}}
+                            {{$post.Content | html}}
                         </div>
                     {{end}}
 

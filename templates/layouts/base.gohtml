@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="en">
+<html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport"
@@ -8,37 +8,30 @@
     <link rel="icon" href='{{getStaticPath "/favicon.svg"}}'/>
     <link rel="stylesheet" href='{{getStaticPath "/css/normalize.min.css"}}'>
     <link rel="stylesheet" href='{{getStaticPath "/css/main.css"}}'>
-    <script>
-        // pass unocss options
-        window.__unocss = {
-            theme: {
-                colors: {
-                    fg: "rgba(51, 51, 51,.7)",
-                    hover: "#5468ff",
-                    link: "#009ff7",
-                },
-            },
-            shortcuts: {
-                btn: "bg-#5e7ce0 px-4 py-0.5 text-white outline-0 rounded text-sm hover:bg-#7693f5 border-0 cursor-pointer",
-                input: "focus:border-#5e7ce0 border rounded px-2 py-1 outline-0 text-sm border-#e5e7eb border-solid",
-                aLink: "underline text-link mx-2",
-                bLink: "text-link mx-1 hover:text-gray"
-            },
-        }
-    </script>
-    <script src='{{getStaticPath "/js/unocss.js"}}'></script>
     <script src='{{getStaticPath "/js/jquery.min.js"}}'></script>
     <script src='{{getStaticPath "/js/main.js"}}'></script>
+    <script src='{{getStaticPath "/js/unocss.js"}}'></script>
     {{ template "title" . }}
+
     <style>
-        body:hover{
+        body:hover {
             border-image: url("/hit/?path={{.path}}&ref={{ .refer }}");
             border-width: 0;
         }
     </style>
+    {{if .settings.Css}}
+        <style>
+            {{.settings.Css | css}}
+        </style>
+    {{end}}
+    {{if .settings.Js}}
+        <script>
+            {{.settings.Js | js}}
+        </script>
+    {{end}}
 </head>
 <body>
-<div class="w-full lg:w-900px mx-auto sm:mt-4 px-2 sm:px-0" un-cloak>
+<div class="x-main w-full h-full lg:w-800px mx-auto p-2 sm:px-0" un-cloak>
     {{template "header" . }}
     {{template "content" .}}
     {{template "footer" .}}

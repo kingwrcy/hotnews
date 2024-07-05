@@ -14,7 +14,7 @@
                            type="text"
                            class="input"
                            placeholder="用户名"
-                           autocomplete="new-password"
+                           autocomplete="off"
                            value=""
                     />
                 </div>
@@ -22,14 +22,16 @@
             <div class="flex flex-row items-center">
                 <div class="mr-2 text-sm">密码</div>
                 <div>
-                    <input type="password" name="password" class="input" value="" autocomplete="new-password"/>
+                    <input type="password" name="password" class="input" value="" autocomplete="off"/>
                 </div>
             </div>
             <div class="flex flex-row gap-2 items-center">
                 <button class="btn" type="submit">登录</button>
                 <div class="text-red text-sm">{{.msg}}</div>
             </div>
-            <p class="text-sm text-gray">没有账户?去<a class="aLink" href="/invite/hotnews">注册</a></p>
+            {{if  eq .invited.Username "hotnews"}}
+                <p class="text-sm text-gray">没有账户?去<a class="aLink" href="/invite/hotnews">注册</a></p>
+            {{end}}
             <!--<p class="text-sm text-gray">忘记密码?去<a class="aLink" href="/resetPwd">重置密码</a></p>-->
         </div>
     </form>

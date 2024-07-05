@@ -142,8 +142,12 @@ func OutputCommonSession(db *gorm.DB, c *gin.Context, h ...gin.H) gin.H {
 		db.Model(&model.TbMessage{}).Where("to_user_id = ? and read = 'N'", userinfo.ID).Count(&total)
 		result["unReadMessageCount"] = total
 	}
+	var settings model.TbSettings
+	db.First(&settings)
+
 	result["path"] = c.Request.URL.Path
 	result["refer"] = c.Request.Referer()
 	result["VERSION"] = os.Getenv("HN_VERSION")
+	result["settings"] = settings.Content
 	return result
 }

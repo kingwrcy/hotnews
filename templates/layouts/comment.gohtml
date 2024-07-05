@@ -30,7 +30,7 @@
             {{end}}
         </div>
         <div class="content text-sm">
-            {{.Comment.Content | unEscapeHTML}}
+            {{.Comment.Content | html}}
         </div>
 
         <div class="hidden form-parent">

@@ -69,7 +69,7 @@ func main() {
 		&model.TbUser{}, &model.TbInviteRecord{},
 		&model.TbPost{}, &model.TbInspectLog{},
 		&model.TbComment{}, &model.TbTag{}, &model.TbStatistics{},
-		&model.TbVote{})
+		&model.TbVote{}, &model.TbSettings{})
 	if err != nil {
 		log.Fatalf("升级数据库异常,启动失败.%s", err)
 		return
@@ -107,8 +107,14 @@ func main() {
 func templateFun() template.FuncMap {
 	return template.FuncMap{
 		"timeAgo": timeAgo,
-		"unEscapeHTML": func(content string) template.HTML {
+		"html": func(content string) template.HTML {
 			return template.HTML(content)
+		},
+		"css": func(content string) template.CSS {
+			return template.CSS(content)
+		},
+		"js": func(content string) template.JS {
+			return template.JS(content)
 		},
 		"add": func(a, b int) int {
 			return a + b
@@ -227,6 +233,8 @@ func initSystem(db *gorm.DB) {
 	if errors.Is(db.First(&settings).Error, gorm.ErrRecordNotFound) {
 		saveSettings := vo.SaveSettingsRequest{
 			RegMode: "hotnews",
+			Css:     "",
+			Js:      "",
 		}
 		settings.Content = model.SaveSettingsRequest(saveSettings)
 		db.Save(&settings)

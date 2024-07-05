@@ -1,5 +1,5 @@
 {{define "footer"}}
-    <div class="flex flex-row gap2 items-center my-8 text-xs text-gray pt-2" style="border-top: 1px solid #eee">
+    <div class="x-footer flex flex-row gap2 items-center my-8 text-xs text-gray pt-2 pb-4" style="border-top: 1px solid #eee">
         <div>@2023</div>
         <div>响应时间:{{.executionTime}}ms</div>
 
@@ -13,8 +13,7 @@
             </div>
             <div class="text-xs"><a class="underline" href="/about">关于本站</a></div>
             <div>版本: <a class="underline" target="_blank"
-                          href="https://hub.docker.com/repository/docker/kingwrcy/hotnews/tags">{{.VERSION}}</a></div>
+                          href="https://hub.docker.com/repository/docker/kingwrcy/hotnews/tags">v{{.VERSION}}</a></div>
         </div>
-
     </div>
 {{end}}

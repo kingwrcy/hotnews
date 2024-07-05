@@ -23,8 +23,13 @@
         {{if and (not (eq .userinfo nil)) (eq .userinfo.Role "admin")}}
             <div class='mhover:text-hover {{if eq .selected "users"}}selected{{end}}'><a href="/users">用户</a>
             </div>
-            <div class='mhover:text-hover {{if eq .selected "statistics"}}selected{{end}}'><a href="/statistics">统计</a>
+            <div class='mhover:text-hover {{if eq .selected "statistics"}}selected{{end}}'>
+                <a href="/statistics">统计</a>
             </div>
+            <div class='mhover:text-hover {{if eq .selected "settings"}}selected{{end}}'>
+                <a href="/settings">设置</a>
+            </div>
+
         {{end}}
         <div class="flex flex-row items-center ml-auto gap-2 lt-md:hidden">
             {{ if eq .login true}}

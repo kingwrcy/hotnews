@@ -1,6 +1,7 @@
 package handler
 
 import (
+	"errors"
 	"fmt"
 	"github.com/gin-gonic/gin"
 	"github.com/kingwrcy/hn/model"
@@ -78,9 +79,6 @@ func (i *IndexHandler) ToPost(c *gin.Context) {
 }
 func (i *IndexHandler) ToResetPwd(c *gin.Context) {
 	c.HTML(200, "resetPwd.gohtml", OutputCommonSession(i.db, c, gin.H{}))
-}
-func (i *IndexHandler) ToBeInvited(c *gin.Context) {
-	c.HTML(200, "toBeInvited.gohtml", OutputCommonSession(i.db, c, gin.H{}))
 }
 
 func (i *IndexHandler) ToAddTag(c *gin.Context) {
@@ -408,4 +406,45 @@ func (i *IndexHandler) SearchByDomain(c *gin.Context) {
 		Page:      cast.ToInt64(page),
 		Size:      25,
 	})))
+}
+
+func (i *IndexHandler) ToSettings(c *gin.Context) {
+
+	userinfo := GetCurrentUser(c)
+	if userinfo == nil || userinfo.Role != "admin" {
+		c.Redirect(302, "/")
+		return
+	}
+
+	var settings model.TbSettings
+	var saveSettingsRequest vo.SaveSettingsRequest
+	if errors.Is(i.db.First(&settings).Error, gorm.ErrRecordNotFound) {
+		saveSettingsRequest.RegMode = "hotnews"
+		c.HTML(200, "settings.gohtml", OutputCommonSession(i.db, c, gin.H{
+			"selected": "settings",
+			"settings": saveSettingsRequest,
+		}))
+		return
+	}
+
+	c.HTML(200, "settings.gohtml", OutputCommonSession(i.db, c, gin.H{
+		"selected": "settings",
+		"settings": settings.Content,
+	}))
+}
+
+func (i *IndexHandler) SaveSettings(c *gin.Context) {
+	var request vo.SaveSettingsRequest
+	if err := c.ShouldBind(&request); err != nil {
+		c.JSON(403, nil)
+		return
+	}
+	var settings model.TbSettings
+	i.db.First(&settings)
+
+	settings.Content = model.SaveSettingsRequest(request)
+	i.db.Save(&settings)
+
+	c.Redirect(302, "/settings")
+
 }

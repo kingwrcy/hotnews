@@ -75,7 +75,7 @@ func main() {
 		return
 	}
 
-	initSystemUser(db)
+	initSystem(db)
 
 	gob.Register(vo.Userinfo{})
 	engine := gin.Default()
@@ -201,7 +201,7 @@ func loadTemplates(templatesDir fs.FS) multitemplate.Renderer {
 	return r
 }
 
-func initSystemUser(db *gorm.DB) {
+func initSystem(db *gorm.DB) {
 	var systemUserExists int64
 	db.Table("tb_user").Where("id=999999999").Count(&systemUserExists)
 	if systemUserExists == 0 {
@@ -222,4 +222,14 @@ func initSystemUser(db *gorm.DB) {
 		systemUser.ID = 999999999
 		db.Save(&systemUser)
 	}
+
+	var settings model.TbSettings
+	if errors.Is(db.First(&settings).Error, gorm.ErrRecordNotFound) {
+		saveSettings := vo.SaveSettingsRequest{
+			RegMode: "hotnews",
+		}
+		settings.Content = model.SaveSettingsRequest(saveSettings)
+		db.Save(&settings)
+	}
+
 }

@@ -22,6 +22,8 @@ func Setup(injector *do.Injector, engine *gin.Engine) {
 	statisticsHandler := do.MustInvoke[*StatisticsHandler](injector)
 	_ = do.MustInvoke[*CommentHandler](injector)
 
+	engine.GET("/settings", indexHandler.ToSettings)
+	engine.POST("/settings", indexHandler.SaveSettings)
 	engine.GET("/hit", statisticsHandler.Hit)
 	engine.GET("/statistics", statisticsHandler.Query)
 

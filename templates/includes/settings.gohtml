@@ -1,0 +1,45 @@
+{{ define "title"}}<title>系统设置</title>{{ end }}
+
+
+{{define "content"}}
+    <div class="mt-4">
+        <form action="/settings" method="post" autocomplete="off">
+            <p class="font-bold text-5 mb-4">系统设置</p>
+
+            <div class="flex flex-col gap-2 border b-solid border-gray rounded p-2 text-sm">
+                <div class="flex flex-row items-center">
+                    <div class="mr-2 ">注册模式</div>
+                    <div class="flex items-center gap-2">
+
+                        <input name="regMode"
+                               id="invite"
+                               type="radio"
+                               class="input w-4 h-4"
+                               value="invite"
+                               {{if eq .settings.RegMode "invite"}}checked{{end}}/>
+                        <label for="invite">邀请码注册</label>
+
+                        <input name="regMode" id="hotnews"
+                               type="radio"
+                               class="input w-4 h-4"
+                               value="hotnews"
+                               {{if eq .settings.RegMode "hotnews"}}checked{{end}}/>
+                        <label for="hotnews">无限制注册</label>
+
+                        <input name="regMode" id="shutdown"
+                               type="radio"
+                               class="input w-4 h-4"
+                               value="shutdown"
+                               {{if eq .settings.RegMode "shutdown"}}checked{{end}}/>
+                        <label for="shutdown">关闭注册</label>
+                    </div>
+                </div>
+
+                <div class="flex flex-row gap-2 items-center">
+                    <button class="btn" type="submit">保存</button>
+                    <div class="text-red text-sm">{{.msg}}</div>
+                </div>
+            </div>
+        </form>
+    </div>
+{{end}}

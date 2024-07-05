@@ -294,12 +294,24 @@ func (u *UserHandler) Comments(c *gin.Context) {
 }
 
 func (u *UserHandler) ToInvited(c *gin.Context) {
+	var settings model.TbSettings
+
+	u.db.First(&settings)
+
+	if settings.Content.RegMode == "shutdown" {
+		c.HTML(200, "toBeInvited.gohtml", OutputCommonSession(u.db, c, gin.H{
+			"selected": "/",
+			"settings": settings.Content,
+		}))
+		return
+	}
+
 	code := c.Param("code")
 	if code == "" {
 		c.Redirect(200, "/")
 		return
 	}
-	if code == "hotnews" {
+	if settings.Content.RegMode == "hotnews" {
 		c.HTML(200, "toBeInvited.gohtml", OutputCommonSession(u.db, c, gin.H{
 			"selected": "/",
 			"code":     code,
@@ -330,6 +342,17 @@ func (u *UserHandler) ToAbout(c *gin.Context) {
 }
 
 func (u *UserHandler) DoInvited(c *gin.Context) {
+	var settings model.TbSettings
+	u.db.First(&settings)
+
+	if settings.Content.RegMode == "shutdown" {
+		c.HTML(200, "toBeInvited.gohtml", OutputCommonSession(u.db, c, gin.H{
+			"codeIsInvalid": true,
+			"msg":           "目前不开放注册",
+		}))
+		return
+	}
+
 	code := c.Param("code")
 	if code == "" {
 		c.Redirect(200, "/")
@@ -338,9 +361,9 @@ func (u *UserHandler) DoInvited(c *gin.Context) {
 
 	var invited model.TbInviteRecord
 	var user model.TbUser
-	if code != "hotnews" {
-		u.db.Where("code = ? and \"invalidAt\" >= now() and status = 'ENABLE'", code).First(&invited)
-		if &invited == nil {
+	if settings.Content.RegMode == "invite" {
+		err := u.db.Where("code = ? and \"invalidAt\" >= now() and status = 'ENABLE'", code).First(&invited).Error
+		if errors.Is(err, gorm.ErrRecordNotFound) {
 			c.HTML(200, "toBeInvited.gohtml", OutputCommonSession(u.db, c, gin.H{
 				"codeIsInvalid": true,
 				"msg":           "邀请码已使用/已过期/无效",
@@ -417,7 +440,7 @@ func (u *UserHandler) DoInvited(c *gin.Context) {
 		if err != nil {
 			return err
 		}
-		if code != "hotnews" {
+		if settings.Content.RegMode == "invite" {
 			err = tx.Model(&invited).Where("id=?", invited.ID).Updates(model.TbInviteRecord{
 				InvitedUsername:  request.Username,
 				InvitedUserEmail: request.Email,

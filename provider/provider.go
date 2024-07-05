@@ -19,7 +19,7 @@ type AppConfig struct {
 func NewRepository(i *do.Injector) (*gorm.DB, error) {
 	appConfig := do.MustInvoke[*AppConfig](i)
 	db, err := gorm.Open(postgres.Open(appConfig.DB), &gorm.Config{
-		Logger:         logger.Default.LogMode(logger.Info),
+		Logger:         logger.Default.LogMode(logger.Error),
 		TranslateError: true})
 	if err != nil {
 		return nil, err

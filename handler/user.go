@@ -299,9 +299,16 @@ func (u *UserHandler) ToInvited(c *gin.Context) {
 		c.Redirect(200, "/")
 		return
 	}
+	if code == "hotnews" {
+		c.HTML(200, "toBeInvited.gohtml", OutputCommonSession(u.db, c, gin.H{
+			"selected": "/",
+			"code":     code,
+		}))
+		return
+	}
 	var invited model.TbInviteRecord
 	err := u.db.Where("code = ? and \"invalidAt\" >= now() and status = 'ENABLE'", code).First(&invited).Error
-	if err == gorm.ErrRecordNotFound {
+	if errors.Is(err, gorm.ErrRecordNotFound) {
 		c.HTML(200, "toBeInvited.gohtml", OutputCommonSession(u.db, c, gin.H{
 			"codeIsInvalid": true,
 			"msg":           "邀请码已使用/已过期/无效",
@@ -331,14 +338,17 @@ func (u *UserHandler) DoInvited(c *gin.Context) {
 
 	var invited model.TbInviteRecord
 	var user model.TbUser
-	u.db.Where("code = ? and \"invalidAt\" >= now() and status = 'ENABLE'", code).First(&invited)
-	if &invited == nil {
-		c.HTML(200, "toBeInvited.gohtml", OutputCommonSession(u.db, c, gin.H{
-			"codeIsInvalid": true,
-			"msg":           "邀请码已使用/已过期/无效",
-		}))
-		return
+	if code != "hotnews" {
+		u.db.Where("code = ? and \"invalidAt\" >= now() and status = 'ENABLE'", code).First(&invited)
+		if &invited == nil {
+			c.HTML(200, "toBeInvited.gohtml", OutputCommonSession(u.db, c, gin.H{
+				"codeIsInvalid": true,
+				"msg":           "邀请码已使用/已过期/无效",
+			}))
+			return
+		}
 	}
+
 	var request vo.RegisterRequest
 	if err := c.Bind(&request); err != nil {
 		c.HTML(200, "toBeInvited.gohtml", OutputCommonSession(u.db, c, gin.H{

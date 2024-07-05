@@ -71,7 +71,7 @@ func main() {
 		&model.TbComment{}, &model.TbTag{}, &model.TbStatistics{},
 		&model.TbVote{})
 	if err != nil {
-		log.Printf("升级数据库异常,启动失败.%s", err)
+		log.Fatalf("升级数据库异常,启动失败.%s", err)
 		return
 	}
 

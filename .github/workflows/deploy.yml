@@ -42,3 +42,13 @@ jobs:
             ${{env.LASTEST_TAG}}
           build-args: |
             ${{steps.version_step.outputs.version}}
+
+      - name: executing remote ssh commands using password
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.HOST }}
+          username: ${{ secrets.USERNAME }}
+          key: ${{ secrets.SSH_KEY }}
+          passphrase: ${{ secrets.PASSPHRASE }}
+          script: |
+            /root/program/hotnews/start.sh

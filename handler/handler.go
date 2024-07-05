@@ -8,6 +8,7 @@ import (
 	"github.com/samber/do"
 	"gorm.io/gorm"
 	"math/rand"
+	"os"
 	"time"
 )
 
@@ -141,5 +142,6 @@ func OutputCommonSession(db *gorm.DB, c *gin.Context, h ...gin.H) gin.H {
 	}
 	result["path"] = c.Request.URL.Path
 	result["refer"] = c.Request.Referer()
+	result["VERSION"] = os.Getenv("HN_VERSION")
 	return result
 }

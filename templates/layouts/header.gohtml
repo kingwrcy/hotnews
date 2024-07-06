@@ -42,7 +42,9 @@
                     {{end}}
                 {{end}}
                 <div class='x-header-item hover:text-hover {{if eq .selected "new"}}selected{{end}}'><a href="/new">提交</a></div>
-                <div class='x-header-item hover:text-hover {{if eq .selected "mine"}}selected{{end}}'><a
+                <div class='x-header-item  flex items-center gap-1 {{if eq .selected "mine"}}selected{{end}}'>
+                    <img src="{{$.avatarCdn}}/{{.userinfo.EmailHash}}" class="rounded w-4 h-4"/>
+                    <a class="hover:text-hover"
                             href="/u/profile/{{.userinfo.Username}}">{{.userinfo.Username}}</a></div>
                 <div class='x-header-item hover:text-hover {{if eq .selected "message"}}selected{{end}} {{if gt .unReadMessageCount 0}}text-red{{end}}'>
                     <a href="/u/message">消息({{.unReadMessageCount}})</a></div>

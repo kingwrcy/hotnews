@@ -4,6 +4,7 @@ import (
 	"github.com/gin-contrib/sessions"
 	"github.com/gin-gonic/gin"
 	"github.com/kingwrcy/hn/model"
+	"github.com/kingwrcy/hn/provider"
 	"github.com/kingwrcy/hn/vo"
 	"github.com/samber/do"
 	"gorm.io/gorm"
@@ -124,11 +125,13 @@ func GetCurrentUser(c *gin.Context) *vo.Userinfo {
 	return nil
 }
 
-func OutputCommonSession(db *gorm.DB, c *gin.Context, h ...gin.H) gin.H {
+func OutputCommonSession(injector *do.Injector, c *gin.Context, h ...gin.H) gin.H {
 	session := sessions.Default(c)
 	result := gin.H{}
 	start := c.GetInt64("executionTime")
-	result["executionTime"] = time.Since(time.UnixMilli(start)).Milliseconds()
+	db := do.MustInvoke[*gorm.DB](injector)
+	config := do.MustInvoke[*provider.AppConfig](injector)
+
 	result["login"] = session.Get("login")
 	result["userinfo"] = session.Get("userinfo")
 	for _, v := range h {
@@ -149,5 +152,8 @@ func OutputCommonSession(db *gorm.DB, c *gin.Context, h ...gin.H) gin.H {
 	result["refer"] = c.Request.Referer()
 	result["VERSION"] = os.Getenv("HN_VERSION")
 	result["settings"] = settings.Content
+	result["avatarCdn"] = config.AvatarCdn
+	result["staticCdnPrefix"] = config.StaticCdnPrefix
+	result["executionTime"] = time.Since(time.UnixMilli(start)).Milliseconds()
 	return result
 }

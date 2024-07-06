@@ -1,7 +1,9 @@
 package handler
 
 import (
+	"crypto/sha256"
 	"errors"
+	"fmt"
 	"github.com/gin-contrib/sessions"
 	"github.com/gin-gonic/gin"
 	"github.com/kingwrcy/hn/model"
@@ -65,10 +67,11 @@ func (u *UserHandler) Login(c *gin.Context) {
 	}
 
 	cookieData := vo.Userinfo{
-		Username: user.Username,
-		Role:     user.Role,
-		ID:       user.ID,
-		Email:    user.Email,
+		Username:  user.Username,
+		Role:      user.Role,
+		ID:        user.ID,
+		Email:     user.Email,
+		EmailHash: user.EmailHash,
 	}
 	c.Redirect(301, "/")
 	session := sessions.Default(c)
@@ -81,7 +84,7 @@ func (u *UserHandler) Login(c *gin.Context) {
 func (u *UserHandler) ToLogin(c *gin.Context) {
 	var settings model.TbSettings
 	u.db.First(&settings)
-	c.HTML(200, "login.gohtml", OutputCommonSession(u.db, c, gin.H{
+	c.HTML(200, "login.gohtml", OutputCommonSession(u.injector, c, gin.H{
 		"selected": "login",
 	}))
 }
@@ -102,7 +105,7 @@ func (u *UserHandler) Asks(c *gin.Context) {
 
 	var user model.TbUser
 	if err := u.db.Preload(clause.Associations).Where("username= ?", username).First(&user).Error; err == gorm.ErrRecordNotFound {
-		c.HTML(200, "profile.gohtml", OutputCommonSession(u.db, c, gin.H{
+		c.HTML(200, "profile.gohtml", OutputCommonSession(u.injector, c, gin.H{
 			"selected": "mine",
 			"msg":      "如果用户确定存在,可能他改名字了.",
 		}))
@@ -130,7 +133,7 @@ func (u *UserHandler) Asks(c *gin.Context) {
 		totalPage = totalPage + 1
 	}
 
-	c.HTML(200, "profile.gohtml", OutputCommonSession(u.db, c, gin.H{
+	c.HTML(200, "profile.gohtml", OutputCommonSession(u.injector, c, gin.H{
 		"selected":        "mine",
 		"user":            user,
 		"sub":             "ask",
@@ -154,7 +157,7 @@ func (u *UserHandler) Links(c *gin.Context) {
 	username := c.Param("username")
 	var user model.TbUser
 	if err := u.db.Preload(clause.Associations).Where("username= ?", username).First(&user).Error; err == gorm.ErrRecordNotFound {
-		c.HTML(200, "profile.gohtml", OutputCommonSession(u.db, c, gin.H{
+		c.HTML(200, "profile.gohtml", OutputCommonSession(u.injector, c, gin.H{
 			"selected": "mine",
 			"msg":      "如果用户确定存在,可能他改名字了.",
 		}))
@@ -183,7 +186,7 @@ func (u *UserHandler) Links(c *gin.Context) {
 		totalPage = totalPage + 1
 	}
 
-	c.HTML(200, "profile.gohtml", OutputCommonSession(u.db, c, gin.H{
+	c.HTML(200, "profile.gohtml", OutputCommonSession(u.injector, c, gin.H{
 		"selected":        "mine",
 		"user":            user,
 		"sub":             "link",
@@ -210,7 +213,7 @@ func (u *UserHandler) ToMessage(c *gin.Context) {
 	u.db.Where("to_user_id = ?", userinfo.ID).Limit(size).Offset((page - 1) * size).
 		Order("created_at desc").Find(&messages)
 
-	c.HTML(200, "message.gohtml", OutputCommonSession(u.db, c, gin.H{
+	c.HTML(200, "message.gohtml", OutputCommonSession(u.injector, c, gin.H{
 		"selected": "message",
 		"messages": messages,
 		"total":    total,
@@ -250,7 +253,7 @@ func (u *UserHandler) Comments(c *gin.Context) {
 	username := c.Param("username")
 	var user model.TbUser
 	if err := u.db.Preload(clause.Associations).Where("username= ?", username).First(&user).Error; err == gorm.ErrRecordNotFound {
-		c.HTML(200, "profile.gohtml", OutputCommonSession(u.db, c, gin.H{
+		c.HTML(200, "profile.gohtml", OutputCommonSession(u.injector, c, gin.H{
 			"selected": "mine",
 			"msg":      "如果用户确定存在,可能他改名字了.",
 		}))
@@ -280,7 +283,7 @@ func (u *UserHandler) Comments(c *gin.Context) {
 		totalPage = totalPage + 1
 	}
 
-	c.HTML(200, "profile.gohtml", OutputCommonSession(u.db, c, gin.H{
+	c.HTML(200, "profile.gohtml", OutputCommonSession(u.injector, c, gin.H{
 		"selected":        "mine",
 		"user":            user,
 		"sub":             "comments",
@@ -301,7 +304,7 @@ func (u *UserHandler) ToInvited(c *gin.Context) {
 	u.db.First(&settings)
 
 	if settings.Content.RegMode == "shutdown" {
-		c.HTML(200, "toBeInvited.gohtml", OutputCommonSession(u.db, c, gin.H{
+		c.HTML(200, "toBeInvited.gohtml", OutputCommonSession(u.injector, c, gin.H{
 			"selected": "/",
 		}))
 		return
@@ -313,7 +316,7 @@ func (u *UserHandler) ToInvited(c *gin.Context) {
 		return
 	}
 	if settings.Content.RegMode == "hotnews" {
-		c.HTML(200, "toBeInvited.gohtml", OutputCommonSession(u.db, c, gin.H{
+		c.HTML(200, "toBeInvited.gohtml", OutputCommonSession(u.injector, c, gin.H{
 			"selected": "/",
 			"code":     code,
 		}))
@@ -322,14 +325,14 @@ func (u *UserHandler) ToInvited(c *gin.Context) {
 	var invited model.TbInviteRecord
 	err := u.db.Where("code = ? and \"invalidAt\" >= now() and status = 'ENABLE'", code).First(&invited).Error
 	if errors.Is(err, gorm.ErrRecordNotFound) {
-		c.HTML(200, "toBeInvited.gohtml", OutputCommonSession(u.db, c, gin.H{
+		c.HTML(200, "toBeInvited.gohtml", OutputCommonSession(u.injector, c, gin.H{
 			"codeIsInvalid": true,
 			"msg":           "邀请码已使用/已过期/无效",
 		}))
 		return
 	}
 
-	c.HTML(200, "toBeInvited.gohtml", OutputCommonSession(u.db, c, gin.H{
+	c.HTML(200, "toBeInvited.gohtml", OutputCommonSession(u.injector, c, gin.H{
 		"selected": "/",
 		"invited":  invited,
 		"code":     code,
@@ -337,7 +340,7 @@ func (u *UserHandler) ToInvited(c *gin.Context) {
 }
 
 func (u *UserHandler) ToAbout(c *gin.Context) {
-	c.HTML(200, "about.gohtml", OutputCommonSession(u.db, c, gin.H{
+	c.HTML(200, "about.gohtml", OutputCommonSession(u.injector, c, gin.H{
 		"selected": "/",
 	}))
 }
@@ -347,7 +350,7 @@ func (u *UserHandler) DoInvited(c *gin.Context) {
 	u.db.First(&settings)
 
 	if settings.Content.RegMode == "shutdown" {
-		c.HTML(200, "toBeInvited.gohtml", OutputCommonSession(u.db, c, gin.H{
+		c.HTML(200, "toBeInvited.gohtml", OutputCommonSession(u.injector, c, gin.H{
 			"codeIsInvalid": true,
 			"msg":           "目前不开放注册",
 		}))
@@ -365,7 +368,7 @@ func (u *UserHandler) DoInvited(c *gin.Context) {
 	if settings.Content.RegMode == "invite" {
 		err := u.db.Where("code = ? and \"invalidAt\" >= now() and status = 'ENABLE'", code).First(&invited).Error
 		if errors.Is(err, gorm.ErrRecordNotFound) {
-			c.HTML(200, "toBeInvited.gohtml", OutputCommonSession(u.db, c, gin.H{
+			c.HTML(200, "toBeInvited.gohtml", OutputCommonSession(u.injector, c, gin.H{
 				"codeIsInvalid": true,
 				"msg":           "邀请码已使用/已过期/无效",
 			}))
@@ -375,31 +378,31 @@ func (u *UserHandler) DoInvited(c *gin.Context) {
 
 	var request vo.RegisterRequest
 	if err := c.Bind(&request); err != nil {
-		c.HTML(200, "toBeInvited.gohtml", OutputCommonSession(u.db, c, gin.H{
+		c.HTML(200, "toBeInvited.gohtml", OutputCommonSession(u.injector, c, gin.H{
 			"msg": "参数无效", "code": code,
 		}))
 		return
 	}
 	if len(request.Username) < 3 {
-		c.HTML(200, "toBeInvited.gohtml", OutputCommonSession(u.db, c, gin.H{
+		c.HTML(200, "toBeInvited.gohtml", OutputCommonSession(u.injector, c, gin.H{
 			"msg": "用户名长度必须大于3位", "code": code,
 		}))
 		return
 	}
 	if len(request.Password) < 5 {
-		c.HTML(200, "toBeInvited.gohtml", OutputCommonSession(u.db, c, gin.H{
+		c.HTML(200, "toBeInvited.gohtml", OutputCommonSession(u.injector, c, gin.H{
 			"msg": "密码长度必须大于5位", "code": code,
 		}))
 		return
 	}
 	if request.Password != request.RepeatPassword {
-		c.HTML(200, "toBeInvited.gohtml", OutputCommonSession(u.db, c, gin.H{
+		c.HTML(200, "toBeInvited.gohtml", OutputCommonSession(u.injector, c, gin.H{
 			"msg": "两次密码不一致", "code": code,
 		}))
 		return
 	}
 	if _, ok := mail.ParseAddress(request.Email); ok != nil {
-		c.HTML(200, "toBeInvited.gohtml", OutputCommonSession(u.db, c, gin.H{
+		c.HTML(200, "toBeInvited.gohtml", OutputCommonSession(u.injector, c, gin.H{
 			"msg": "邮箱格式不正确", "code": code,
 		}))
 		return
@@ -407,7 +410,7 @@ func (u *UserHandler) DoInvited(c *gin.Context) {
 	user.Username = request.Username
 	hashedPwd, err := bcrypt.GenerateFromPassword([]byte(request.Password), bcrypt.DefaultCost)
 	if err != nil {
-		c.HTML(200, "toBeInvited.gohtml", OutputCommonSession(u.db, c, gin.H{
+		c.HTML(200, "toBeInvited.gohtml", OutputCommonSession(u.injector, c, gin.H{
 			"msg": "系统异常", "code": code,
 		}))
 		return
@@ -418,6 +421,10 @@ func (u *UserHandler) DoInvited(c *gin.Context) {
 	user.Status = "Active"
 	user.CommentCount = 0
 	user.PostCount = 0
+
+	hash := sha256.New()
+	hash.Write([]byte(user.Email))
+	user.EmailHash = fmt.Sprintf("%x", hash.Sum(nil))
 
 	var totalUsers int64
 	u.db.Table("tb_user").Where("id <> 999999999").Count(&totalUsers)
@@ -454,18 +461,18 @@ func (u *UserHandler) DoInvited(c *gin.Context) {
 		return tx.Save(&inviteRecords).Error
 	})
 	if errors.Is(err, gorm.ErrDuplicatedKey) {
-		c.HTML(200, "toBeInvited.gohtml", OutputCommonSession(u.db, c, gin.H{
+		c.HTML(200, "toBeInvited.gohtml", OutputCommonSession(u.injector, c, gin.H{
 			"msg":  "用户名已经存在了,换一个吧",
 			"code": code,
 		}))
 		return
 	} else if err != nil {
-		c.HTML(200, "toBeInvited.gohtml", OutputCommonSession(u.db, c, gin.H{
+		c.HTML(200, "toBeInvited.gohtml", OutputCommonSession(u.injector, c, gin.H{
 			"msg": "系统异常",
 		}))
 		return
 	}
-	c.HTML(200, "login.gohtml", OutputCommonSession(u.db, c, gin.H{
+	c.HTML(200, "login.gohtml", OutputCommonSession(u.injector, c, gin.H{
 		"msg": "注册成功,去登录吧",
 	}))
 }
@@ -478,7 +485,7 @@ func (u *UserHandler) ToList(c *gin.Context) {
 	}
 	var users []model.TbUser
 	u.db.Where("ID <> 999999999").Order("id desc").Find(&users)
-	c.HTML(200, "users.gohtml", OutputCommonSession(u.db, c, gin.H{
+	c.HTML(200, "users.gohtml", OutputCommonSession(u.injector, c, gin.H{
 		"selected": "users",
 		"users":    users,
 	}))

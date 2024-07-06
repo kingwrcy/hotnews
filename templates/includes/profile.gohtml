@@ -32,6 +32,8 @@
                 <div>{{.user.Status}}</div>
             </div>
 
+            <img src="{{$.avatarCdn}}/{{.user.EmailHash}}" class="rounded w-12 h-12"/>
+
             <div class="flex flex-row gap-8 items-center text-sm">
                 <div class="font-bold">加入时间</div>
                 <div>{{.user.CreatedAt.Format "2006-01-02"}}{{if .invitedUsername }}  通过  <a

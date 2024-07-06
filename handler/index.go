@@ -41,13 +41,13 @@ func (i *IndexHandler) Index(c *gin.Context) {
 		return
 	}
 
-	c.HTML(200, "index.gohtml", OutputCommonSession(i.db, c, gin.H{
+	c.HTML(200, "index.gohtml", OutputCommonSession(i.injector, c, gin.H{
 		"selected": "/",
 	}, topics))
 }
 
 func (i *IndexHandler) ToSearch(c *gin.Context) {
-	c.HTML(200, "search.gohtml", OutputCommonSession(i.db, c, gin.H{
+	c.HTML(200, "search.gohtml", OutputCommonSession(i.injector, c, gin.H{
 		"selected": "search",
 	}))
 }
@@ -59,7 +59,7 @@ func (i *IndexHandler) DoSearch(c *gin.Context) {
 	if request.Page <= 0 {
 		request.Page = 1
 	}
-	c.HTML(200, "search.gohtml", OutputCommonSession(i.db, c, gin.H{
+	c.HTML(200, "search.gohtml", OutputCommonSession(i.injector, c, gin.H{
 		"selected":  "search",
 		"condition": request,
 	}, QueryPosts(i.db, request)))
@@ -68,17 +68,17 @@ func (i *IndexHandler) DoSearch(c *gin.Context) {
 func (i *IndexHandler) ToNew(c *gin.Context) {
 	var tags []model.TbTag
 	i.db.Model(&model.TbTag{}).Preload("Parent").Where("parent_id is null").Preload("Children").Find(&tags)
-	c.HTML(200, "new.gohtml", OutputCommonSession(i.db, c, gin.H{
+	c.HTML(200, "new.gohtml", OutputCommonSession(i.injector, c, gin.H{
 		"selected": "new",
 		"tags":     tags,
 	}))
 }
 
 func (i *IndexHandler) ToPost(c *gin.Context) {
-	c.HTML(200, "post.gohtml", OutputCommonSession(i.db, c, gin.H{}))
+	c.HTML(200, "post.gohtml", OutputCommonSession(i.injector, c, gin.H{}))
 }
 func (i *IndexHandler) ToResetPwd(c *gin.Context) {
-	c.HTML(200, "resetPwd.gohtml", OutputCommonSession(i.db, c, gin.H{}))
+	c.HTML(200, "resetPwd.gohtml", OutputCommonSession(i.injector, c, gin.H{}))
 }
 
 func (i *IndexHandler) ToAddTag(c *gin.Context) {
@@ -90,7 +90,7 @@ func (i *IndexHandler) ToAddTag(c *gin.Context) {
 	var parentTags []model.TbTag
 	i.db.Find(&parentTags, "parent_id is null")
 
-	c.HTML(200, "tagEdit.gohtml", OutputCommonSession(i.db, c, gin.H{
+	c.HTML(200, "tagEdit.gohtml", OutputCommonSession(i.injector, c, gin.H{
 		"parents":  parentTags,
 		"selected": "tags",
 	}))
@@ -108,7 +108,7 @@ func (i *IndexHandler) ToEditTag(c *gin.Context) {
 	var parentTags []model.TbTag
 	i.db.Find(&parentTags, "parent_id is null")
 
-	c.HTML(200, "tagEdit.gohtml", OutputCommonSession(i.db, c, gin.H{
+	c.HTML(200, "tagEdit.gohtml", OutputCommonSession(i.injector, c, gin.H{
 		"tag":      tag,
 		"parentID": cast.ToInt(tag.ParentID),
 		"parents":  parentTags,
@@ -197,7 +197,7 @@ func (i *IndexHandler) ToTags(c *gin.Context) {
 	var tags []model.TbTag
 
 	i.db.Model(&model.TbTag{}).Where("parent_id is null").Preload("Children").Find(&tags)
-	c.HTML(200, "tags.gohtml", OutputCommonSession(i.db, c, gin.H{
+	c.HTML(200, "tags.gohtml", OutputCommonSession(i.injector, c, gin.H{
 		"tags":     tags,
 		"selected": "tags",
 	}))
@@ -220,7 +220,7 @@ func (i *IndexHandler) ToWaitApproved(c *gin.Context) {
 		return
 	}
 
-	c.HTML(200, "wait.gohtml", OutputCommonSession(i.db, c, gin.H{
+	c.HTML(200, "wait.gohtml", OutputCommonSession(i.injector, c, gin.H{
 		"posts":        waitApprovedList,
 		"waitApproved": len(waitApprovedList),
 		"selected":     "approve",
@@ -232,7 +232,7 @@ func (i *IndexHandler) History(c *gin.Context) {
 
 	page := c.DefaultQuery("p", "1")
 
-	c.HTML(200, "index.gohtml", OutputCommonSession(i.db, c, gin.H{
+	c.HTML(200, "index.gohtml", OutputCommonSession(i.injector, c, gin.H{
 		"selected": "history",
 	}, QueryPosts(i.db, vo.QueryPostsRequest{
 		Userinfo: userinfo,
@@ -265,7 +265,7 @@ func (i *IndexHandler) ToComments(c *gin.Context) {
 	if total%int64(size) > 0 {
 		totalPage = totalPage + 1
 	}
-	c.HTML(200, "comments.gohtml", OutputCommonSession(i.db, c, gin.H{
+	c.HTML(200, "comments.gohtml", OutputCommonSession(i.injector, c, gin.H{
 		"selected":    "comment",
 		"comments":    comments,
 		"totalPage":   totalPage,
@@ -347,11 +347,11 @@ func (i *IndexHandler) Vote(c *gin.Context) {
 				return err
 			}
 			if targetType == "POST" {
-				if err := tx.Model(&model.TbPost{}).Where("id =?", targetID).Update(col, gorm.Expr(col+"+1")).Error; err != nil {
+				if err := tx.Model(&model.TbPost{}).Where("id =?", targetID).Update(col, gorm.Expr(fmt.Sprintf("\"%s\"", col)+"+1")).Error; err != nil {
 					return err
 				}
 			} else if targetType == "COMMENT" {
-				if err := tx.Model(&model.TbComment{}).Where("id =?", targetID).Update(col, gorm.Expr(col+"+1")).Error; err != nil {
+				if err := tx.Model(&model.TbComment{}).Where("id =?", targetID).Update(col, gorm.Expr(fmt.Sprintf("\"%s\"", col)+"+1")).Error; err != nil {
 					return err
 				}
 			}
@@ -381,7 +381,7 @@ func (i *IndexHandler) Moderation(c *gin.Context) {
 	if total%int64(size) > 0 {
 		totalPage = totalPage + 1
 	}
-	c.HTML(200, "moderation.gohtml", OutputCommonSession(i.db, c, gin.H{
+	c.HTML(200, "moderation.gohtml", OutputCommonSession(i.injector, c, gin.H{
 		"logs":        logs,
 		"totalPage":   totalPage,
 		"hasNext":     pageNumber < int(totalPage),
@@ -397,7 +397,7 @@ func (i *IndexHandler) SearchByDomain(c *gin.Context) {
 
 	page := c.DefaultQuery("p", "1")
 
-	c.HTML(200, "index.gohtml", OutputCommonSession(i.db, c, gin.H{
+	c.HTML(200, "index.gohtml", OutputCommonSession(i.injector, c, gin.H{
 		"selected": "history",
 	}, QueryPosts(i.db, vo.QueryPostsRequest{
 		Userinfo:  userinfo,
@@ -420,13 +420,13 @@ func (i *IndexHandler) ToSettings(c *gin.Context) {
 	var saveSettingsRequest vo.SaveSettingsRequest
 	if errors.Is(i.db.First(&settings).Error, gorm.ErrRecordNotFound) {
 		saveSettingsRequest.RegMode = "hotnews"
-		c.HTML(200, "settings.gohtml", OutputCommonSession(i.db, c, gin.H{
+		c.HTML(200, "settings.gohtml", OutputCommonSession(i.injector, c, gin.H{
 			"selected": "settings",
 		}))
 		return
 	}
 
-	c.HTML(200, "settings.gohtml", OutputCommonSession(i.db, c, gin.H{
+	c.HTML(200, "settings.gohtml", OutputCommonSession(i.injector, c, gin.H{
 		"selected": "settings",
 	}))
 }

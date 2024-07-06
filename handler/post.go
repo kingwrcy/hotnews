@@ -106,7 +106,7 @@ func (p PostHandler) ToEdit(c *gin.Context) {
 	}
 	var tempTags []model.TbTag
 	p.db.Model(&model.TbTag{}).Preload("Parent").Where("parent_id is null").Preload("Children").Find(&tempTags)
-	c.HTML(200, "new.gohtml", OutputCommonSession(p.db, c, gin.H{
+	c.HTML(200, "new.gohtml", OutputCommonSession(p.injector, c, gin.H{
 		"post":     post,
 		"selected": "new",
 		"tags":     tempTags,
@@ -148,7 +148,7 @@ func (p PostHandler) Detail(c *gin.Context) {
 		buildCommentTree(&rootComments, p.db, uid)
 		posts[0].Comments = rootComments
 	}
-	c.HTML(200, "post.gohtml", OutputCommonSession(p.db, c, gin.H{
+	c.HTML(200, "post.gohtml", OutputCommonSession(p.injector, c, gin.H{
 		"posts":    posts,
 		"selected": "detail",
 	}))
@@ -182,7 +182,7 @@ func (p PostHandler) Add(c *gin.Context) {
 
 	var request vo.NewPostRequest
 	if err := c.Bind(&request); err != nil {
-		c.HTML(200, "new.gohtml", OutputCommonSession(p.db, c, gin.H{
+		c.HTML(200, "new.gohtml", OutputCommonSession(p.injector, c, gin.H{
 			"msg":      "参数异常",
 			"selected": "new",
 			"tags":     tempTags,
@@ -191,7 +191,7 @@ func (p PostHandler) Add(c *gin.Context) {
 	}
 	log.Printf("params:%+v", request)
 	if len(request.TagIDs) == 0 || len(request.TagIDs) > 5 {
-		c.HTML(200, "new.gohtml", OutputCommonSession(p.db, c, gin.H{
+		c.HTML(200, "new.gohtml", OutputCommonSession(p.injector, c, gin.H{
 			"msg":      "标签最少1个,最多5个",
 			"selected": "new",
 			"tags":     tempTags,
@@ -199,7 +199,7 @@ func (p PostHandler) Add(c *gin.Context) {
 		return
 	}
 	if request.Type == "" {
-		c.HTML(200, "new.gohtml", OutputCommonSession(p.db, c, gin.H{
+		c.HTML(200, "new.gohtml", OutputCommonSession(p.injector, c, gin.H{
 			"msg":      "类型必填",
 			"selected": "new",
 			"tags":     tempTags,
@@ -207,7 +207,7 @@ func (p PostHandler) Add(c *gin.Context) {
 		return
 	}
 	if request.Type == "link" && request.Link == "" {
-		c.HTML(200, "new.gohtml", OutputCommonSession(p.db, c, gin.H{
+		c.HTML(200, "new.gohtml", OutputCommonSession(p.injector, c, gin.H{
 			"msg":      "分享类的链接是必填项",
 			"selected": "new",
 			"tags":     tempTags,
@@ -265,7 +265,7 @@ func (p PostHandler) Add(c *gin.Context) {
 		return nil
 	})
 	if err != nil {
-		c.HTML(200, "new.gohtml", OutputCommonSession(p.db, c, gin.H{
+		c.HTML(200, "new.gohtml", OutputCommonSession(p.injector, c, gin.H{
 			"msg":      "系统错误",
 			"selected": "new",
 		}))
@@ -357,7 +357,7 @@ func (p PostHandler) SearchByTag(c *gin.Context) {
 
 	tagName := strings.Split(c.Param("tag"), ",")
 
-	c.HTML(200, "index.gohtml", OutputCommonSession(p.db, c, gin.H{
+	c.HTML(200, "index.gohtml", OutputCommonSession(p.injector, c, gin.H{
 		"selected": "history",
 	}, QueryPosts(p.db, vo.QueryPostsRequest{
 		Userinfo:  userinfo,
@@ -377,7 +377,7 @@ func (p PostHandler) SearchByParentTag(c *gin.Context) {
 		Select("name").
 		Where("parent_id = (select id from tb_tag a where a.name = ?)", c.Param("tag")).Scan(&tags)
 
-	c.HTML(200, "index.gohtml", OutputCommonSession(p.db, c, gin.H{
+	c.HTML(200, "index.gohtml", OutputCommonSession(p.injector, c, gin.H{
 		"selected": "history",
 	}, QueryPosts(p.db, vo.QueryPostsRequest{
 		Userinfo:  userinfo,
@@ -392,7 +392,7 @@ func (p PostHandler) SearchByType(c *gin.Context) {
 	userinfo := GetCurrentUser(c)
 	page := c.DefaultQuery("p", "1")
 	typeName := c.Param("type")
-	c.HTML(200, "index.gohtml", OutputCommonSession(p.db, c, gin.H{
+	c.HTML(200, "index.gohtml", OutputCommonSession(p.injector, c, gin.H{
 		"selected": "history",
 	}, QueryPosts(p.db, vo.QueryPostsRequest{
 		Userinfo:  userinfo,

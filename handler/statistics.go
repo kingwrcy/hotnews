@@ -68,7 +68,7 @@ func (s *StatisticsHandler) Query(c *gin.Context) {
 	countryMapListJson, _ := json.Marshal(countryMapList)
 	referMapListJson, _ := json.Marshal(referMapList)
 
-	c.HTML(200, "statistics.gohtml", OutputCommonSession(s.db, c, gin.H{
+	c.HTML(200, "statistics.gohtml", OutputCommonSession(s.injector, c, gin.H{
 		"selected":    "statistics",
 		"referData":   template.JS(referMapListJson),
 		"startDate":   start,

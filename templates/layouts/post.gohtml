@@ -1,8 +1,8 @@
 {{define "post"}}
 
-    <div class="x-post-list flex flex-col gap-2  ">
+    <div class="x-post-list flex flex-col gap-2">
         {{range  $index, $post := .posts}}
-            <div class="x-post-item flex flex-row gap-4 flex-1 items-start ">
+            <div class="x-post-item flex flex-row gap-4 p-2 flex-1 items-start  rounded shadow">
                 <div class="flex flex-col items-center cursor-pointer upVoteParent ">
                     <a class="text-coolGray  {{if $post.UpVoted}}text-red{{end}}"
                        href="{{if $post.UpVoted}}javascript:void(0);{{else}}/vote?id={{$post.Pid}}&action=u&type=POST{{end}}">
@@ -12,7 +12,7 @@
                     </a>
                     <div class="text-sm text-coolGray upVote">{{$post.UpVote}}</div>
                 </div>
-                <div class="flex flex-col flex-1 ">
+                <div class="flex flex-col flex-1 gap-1 ">
                     <div class="flex flex-row gap-2 items-center ">
 
                         <div class="x-post-title text-sm {{if eq $.selected "detail"}}fw-bold{{end}} hover:text-gray lg:max-w-4/5 text-[#06c] fw-bold">
@@ -63,7 +63,7 @@
                         </div>
                     </div>
                     <div class="x-post-toolbar flex flex-row gap2 items-center text-xs text-gray">
-
+                        <img src="{{$.avatarCdn}}/{{$post.User.EmailHash}}" class="rounded w-4 h-4"/>
                         <div><a class="cursor-pointer  hover:text-hover"
                                 href="/u/profile/{{$post.User.Username}}">{{$post.User.Username}}</a></div>
                         <div class="when">{{$post.CreatedAt | timeAgo}}</div>

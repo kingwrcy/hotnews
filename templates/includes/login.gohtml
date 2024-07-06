@@ -29,7 +29,7 @@
                 <button class="btn" type="submit">登录</button>
                 <div class="text-red text-sm">{{.msg}}</div>
             </div>
-            {{if  eq .invited.Username "hotnews"}}
+            {{if  eq .settings.RegMode "hotnews"}}
                 <p class="text-sm text-gray">没有账户?去<a class="aLink" href="/invite/hotnews">注册</a></p>
             {{end}}
             <!--<p class="text-sm text-gray">忘记密码?去<a class="aLink" href="/resetPwd">重置密码</a></p>-->

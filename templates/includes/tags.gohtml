@@ -1,6 +1,5 @@
 {{ define "title"}}
     <title>标签</title>
-
 {{ end }}
 
 {{define "content"}}
@@ -37,9 +36,30 @@
                         <div class="text-gray hover:text-blue-5 cursor-pointer">
                             <a href="/tags/edit/{{.ID}}">编辑</a>
                         </div>
+                        <div class="text-red-500 hover:text-red-600 cursor-pointer">
+                            <div class="removeTag">删除</div>
+                        </div>
                     {{end}}
                 </div>
             {{end}}
         </div>
     {{end}}
 {{end}}
+
+{{ define "afterBody"}}
+    <style>
+        .tippy-box[data-theme~=light]{color:#26323d;box-shadow:0 0 20px 4px rgba(154,161,177,.15),0 4px 80px -8px rgba(36,40,47,.25),0 4px 4px -2px rgba(91,94,105,.15);background-color:#fff}.tippy-box[data-theme~=light][data-placement^=top]>.tippy-arrow:before{border-top-color:#fff}.tippy-box[data-theme~=light][data-placement^=bottom]>.tippy-arrow:before{border-bottom-color:#fff}.tippy-box[data-theme~=light][data-placement^=left]>.tippy-arrow:before{border-left-color:#fff}.tippy-box[data-theme~=light][data-placement^=right]>.tippy-arrow:before{border-right-color:#fff}.tippy-box[data-theme~=light]>.tippy-backdrop{background-color:#fff}.tippy-box[data-theme~=light]>.tippy-svg-arrow{fill:#fff}
+    </style>
+    <script src="https://unpkg.com/@popperjs/core@2"></script>
+    <script src="https://unpkg.com/tippy.js@6"></script>
+    <script>
+        tippy('.removeTag', {
+            content: '<p class="text-xs">你确定删除标签吗?所有关于这个标签的帖子都会被删除!</p><button class="mt-2 btn">删除</button>',
+            allowHTML: true,
+            trigger:'click',
+            interactive:true,
+            maxWidth:150,
+            theme: 'light',
+        });
+    </script>
+{{ end }}

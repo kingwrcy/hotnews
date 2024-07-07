@@ -10,6 +10,7 @@ import (
 	"github.com/spf13/cast"
 	"gorm.io/gorm"
 	"log"
+	"strconv"
 	"time"
 )
 
@@ -328,8 +329,7 @@ func (i *IndexHandler) Vote(c *gin.Context) {
 			userinfo.Username, userinfo.Username, item.Post.Pid, item.CID)
 	}
 
-	if i.db.Model(&model.TbVote{}).Where("target_id = ? and user_id = ?  and type = ?", targetID, uid, targetType).Count(&exists); exists == 0 {
-		log.Printf("comment item.UserID == 0 ")
+	if i.db.Model(&model.TbVote{}).Where("target_id = ? and tb_user_id = ?  and type = ?", targetID, uid, targetType).Count(&exists); exists == 0 {
 		var col string
 		if action == "u" {
 			vote.Action = "UP"
@@ -445,4 +445,18 @@ func (i *IndexHandler) SaveSettings(c *gin.Context) {
 
 	c.Redirect(302, "/settings")
 
+}
+
+func (i *IndexHandler) RemoveTag(c *gin.Context) {
+	userinfo := GetCurrentUser(c)
+	if userinfo == nil || userinfo.Role != "admin" {
+		c.Redirect(302, "/tags")
+		return
+	}
+	tagId, _ := strconv.Atoi(c.Param("tagId"))
+	var tag model.TbTag
+	i.db.Preload("Posts").First(&tag, "id = ?", tagId)
+	i.db.Delete(&tag.Posts)
+	i.db.Delete(&tag)
+	c.Redirect(302, "/tags")
 }

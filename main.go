@@ -96,7 +96,7 @@ func main() {
 		engine.Static("/static", "./static")
 	}
 
-	handler.Setup(injector, engine)
+	handler.SetupRouter(injector, engine)
 
 	go task.StartPostTask(injector)
 

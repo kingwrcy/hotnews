@@ -13,7 +13,7 @@ import (
 	"time"
 )
 
-func Setup(injector *do.Injector, engine *gin.Engine) {
+func SetupRouter(injector *do.Injector, engine *gin.Engine) {
 	provideHandlers(injector)
 
 	userHandler := do.MustInvoke[*UserHandler](injector)
@@ -38,6 +38,7 @@ func Setup(injector *do.Injector, engine *gin.Engine) {
 	engine.GET("/tags/edit/:id", indexHandler.ToEditTag)
 	engine.GET("/tags/add", indexHandler.ToAddTag)
 	engine.POST("/tags/edit", indexHandler.SaveTag)
+	engine.POST("/tags/remove", indexHandler.RemoveTag)
 	//engine.GET("/wait", indexHandler.ToWaitApproved)
 	engine.GET("/comments", indexHandler.ToComments)
 	engine.GET("/vote", indexHandler.Vote)

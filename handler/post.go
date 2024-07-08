@@ -426,8 +426,6 @@ func QueryPosts(db *gorm.DB, request vo.QueryPostsRequest) gin.H {
 	}
 	if request.Userinfo != nil {
 		subQuery := db.Table("tb_vote").Select("target_id").Where("tb_user_id = ? and type = 'POST' and action ='UP'", request.Userinfo.ID)
-
-		tx.Select("p.*,CASE WHEN vote.target_id IS NOT NULL THEN 1 ELSE 0  END AS UpVoted")
 		tx.Joins("LEFT JOIN (?) AS vote ON p.id = vote.target_id", subQuery)
 	}
 	if len(request.Tags) > 0 {
@@ -447,7 +445,13 @@ func QueryPosts(db *gorm.DB, request vo.QueryPostsRequest) gin.H {
 	tx.Distinct("p.id").Count(&total)
 
 	var posts []model.TbPost
-	tx.Select("p.*").Preload("Tags").Preload("User").
+
+	if request.Userinfo != nil {
+		tx.Select("p.*,CASE WHEN vote.target_id IS NOT NULL THEN 1 ELSE 0  END AS up_voted")
+	} else {
+		tx.Select("p.*")
+	}
+	tx.Preload("Tags").Preload("User").
 		Limit(int(request.Size)).
 		Offset(int((request.Page - 1) * request.Size)).
 		Find(&posts)

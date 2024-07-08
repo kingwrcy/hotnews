@@ -169,7 +169,7 @@ func (u *UserHandler) Links(c *gin.Context) {
 		u.db.Model(&model.TbInviteRecord{}).Where("username = ?", user.Username).Scan(&inviteRecords)
 	}
 	var invitedUsername string
-	u.db.Model(&model.TbInviteRecord{}).Select("username").Where("invitedUsername = ?", user.Username).First(&invitedUsername)
+	u.db.Model(&model.TbInviteRecord{}).Select("username").Where("\"invitedUsername\" = ?", user.Username).First(&invitedUsername)
 
 	var total int64
 	var posts []model.TbPost
@@ -268,7 +268,7 @@ func (u *UserHandler) Comments(c *gin.Context) {
 	var invitedUsername string
 	var total int64
 
-	u.db.Model(&model.TbInviteRecord{}).Select("username").Where("invitedUsername = ?", user.Username).First(&invitedUsername)
+	u.db.Model(&model.TbInviteRecord{}).Select("username").Where("\"invitedUsername\" = ?", user.Username).First(&invitedUsername)
 	var comments []model.TbComment
 	tx := u.db.Model(&model.TbComment{}).
 		Preload("User").

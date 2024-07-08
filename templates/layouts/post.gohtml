@@ -2,7 +2,7 @@
 
     <div class="x-post-list flex flex-col gap-2">
         {{range  $index, $post := .posts}}
-            <div class="x-post-item flex flex-row gap-4 p-2 flex-1 items-start bg-slate-50 rounded shadow">
+            <div class="x-post-item flex flex-row gap-4 p-2 flex-1 items-start bg-zinc-50 rounded shadow">
                 <div class="flex flex-col items-center cursor-pointer upVoteParent ">
                     <a class="text-coolGray  {{if $post.UpVoted}}text-red{{end}}"
                        href="{{if $post.UpVoted}}javascript:void(0);{{else}}/vote?id={{$post.Pid}}&action=u&type=POST{{end}}">

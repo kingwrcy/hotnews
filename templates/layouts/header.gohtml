@@ -1,5 +1,5 @@
 {{define "header"}}
-    <div class="x-header flex flex-row items-center gap2 fw-700 text-fg text-sm mb-2 header pb-2 "
+    <div class="x-header flex flex-row items-center gap2 fw-600 text-fg text-sm mb-2 header pb-2 "
          style="border-bottom: 1px solid #eee ">
         <div class="" style="width: 20px; height: 20px">
             <svg
@@ -15,18 +15,37 @@
                 </g>
             </svg>
         </div>
-        <div class='x-header-item hover:text-hover {{if eq .selected "/"}}selected{{end}}'><a href="/">热点</a></div>
-        <div class='x-header-item hover:text-hover {{if eq .selected "history"}}selected{{end}}'><a href="/history">全部</a></div>
-        <div class='x-header-item hover:text-hover {{if eq .selected "comment"}}selected{{end}}'><a href="/comments">评论</a></div>
-        <div class='x-header-item hover:text-hover {{if eq .selected "tags"}}selected{{end}} '><a href="/tags">标签</a></div>
-        <div class='x-header-item hover:text-hover {{if eq .selected "search"}}selected{{end}}'><a href="/search">搜索</a></div>
+        <div class='x-header-item flex gap-1 items-center hover:text-hover {{if eq .selected "/"}}selected{{end}}'>
+            <svg class="w-4 h-4 hidden md:block" xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 256 256"><g fill="#888888"><path d="M208 144a80 80 0 0 1-160 0c0-30.57 14.42-58.26 31-80l33 32l26.27-72C159.86 41.92 208 88.15 208 144" opacity=".2"/><path d="M183.89 153.34a57.6 57.6 0 0 1-46.56 46.55a9 9 0 0 1-1.33.11a8 8 0 0 1-1.32-15.89c16.57-2.79 30.63-16.85 33.44-33.45a8 8 0 0 1 15.78 2.68ZM216 144a88 88 0 0 1-176 0c0-27.92 11-56.47 32.66-84.85a8 8 0 0 1 11.93-.89l24.12 23.41l22-60.41a8 8 0 0 1 12.63-3.41C165.21 36 216 84.55 216 144m-16 0c0-46.09-35.79-85.92-58.21-106.33l-22.27 61.07a8 8 0 0 1-13.09 3L80.06 76.16C64.09 99.21 56 122 56 144a72 72 0 0 0 144 0"/></g></svg>
+            <a href="/">热点</a>
+        </div>
+        <div class='x-header-item flex gap-1 items-center hover:text-hover {{if eq .selected "history"}}selected{{end}}'>
+            <svg class="w-4 h-4 hidden md:block" xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 256 256"><g fill="#888888"><path d="M224 56v112h-64v32H32V56a8 8 0 0 1 8-8h176a8 8 0 0 1 8 8" opacity=".2"/><path d="M240 192h-8v-24a8 8 0 0 0-8-8h-64a8 8 0 0 0-8 8v24H40V56h176v80a8 8 0 0 0 16 0V56a16 16 0 0 0-16-16H40a16 16 0 0 0-16 16v136h-8a8 8 0 0 0 0 16h224a8 8 0 0 0 0-16m-72-16h48v16h-48Z"/></g></svg>
+            <a href="/history">全部</a>
+        </div>
+        <div class='x-header-item flex gap-1 items-center hover:text-hover {{if eq .selected "comment"}}selected{{end}}'>
+            <svg class="w-4 h-4 hidden md:block" xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 256 256"><g fill="#888888"><path d="M224 56v128a8 8 0 0 1-8 8h-65.07l-16 28a8 8 0 0 1-13.9 0l-16-28H40a8 8 0 0 1-8-8V56a8 8 0 0 1 8-8h176a8 8 0 0 1 8 8" opacity=".2"/><path d="M116 120a12 12 0 1 1 12 12a12 12 0 0 1-12-12m-32 12a12 12 0 1 0-12-12a12 12 0 0 0 12 12m88 0a12 12 0 1 0-12-12a12 12 0 0 0 12 12m60-76v128a16 16 0 0 1-16 16h-60.43l-13.68 23.94a16 16 0 0 1-27.78 0L100.43 200H40a16 16 0 0 1-16-16V56a16 16 0 0 1 16-16h176a16 16 0 0 1 16 16m-16 0H40v128h65.07a8 8 0 0 1 7 4l16 28l16-28a8 8 0 0 1 7-4H216Z"/></g></svg>
+            <a href="/comments">评论</a>
+        </div>
+        <div class='x-header-item flex gap-1 items-center hover:text-hover {{if eq .selected "tags"}}selected{{end}} '>
+            <svg class="w-4 h-4 hidden md:block" xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 256 256"><g fill="#888888"><path d="M168 72v152l-56-40l-56 40V72a8 8 0 0 1 8-8h96a8 8 0 0 1 8 8" opacity=".2"/><path d="M160 56H64a16 16 0 0 0-16 16v152a8 8 0 0 0 12.65 6.51L112 193.83l51.36 36.68A8 8 0 0 0 176 224V72a16 16 0 0 0-16-16m0 152.46l-43.36-31a8 8 0 0 0-9.3 0L64 208.45V72h96ZM208 40v152a8 8 0 0 1-16 0V40H88a8 8 0 0 1 0-16h104a16 16 0 0 1 16 16"/></g></svg>
+            <a href="/tags">标签</a>
+        </div>
+        <div class='x-header-item flex gap-1 items-center hover:text-hover {{if eq .selected "search"}}selected{{end}}'>
+            <svg class="w-4 h-4 hidden md:block" xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 256 256"><g fill="#888888"><path d="M192 112a80 80 0 1 1-80-80a80 80 0 0 1 80 80" opacity=".2"/><path d="m229.66 218.34l-50.06-50.06a88.21 88.21 0 1 0-11.32 11.31l50.06 50.07a8 8 0 0 0 11.32-11.32M40 112a72 72 0 1 1 72 72a72.08 72.08 0 0 1-72-72m112 0a8 8 0 0 1-8 8h-24v24a8 8 0 0 1-16 0v-24H80a8 8 0 0 1 0-16h24V80a8 8 0 0 1 16 0v24h24a8 8 0 0 1 8 8"/></g></svg>
+            <a href="/search">搜索</a>
+        </div>
         {{if and (not (eq .userinfo nil)) (eq .userinfo.Role "admin")}}
-            <div class='x-header-item hover:text-hover {{if eq .selected "users"}}selected{{end}}'><a href="/users">用户</a>
+            <div class='x-header-item flex gap-1 items-center hover:text-hover {{if eq .selected "users"}}selected{{end}}'>
+                <svg class="w-4 h-4 hidden md:block" xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 256 256"><g fill="#888888"><path d="M104 40a24 24 0 1 1 24 24a24 24 0 0 1-24-24m108 40H44c-12.87 0-16.71 17.5-5 22.9L96 128l-22.87 86.93a12 12 0 0 0 21.75 10.14L128 168l33.12 57.07a12 12 0 0 0 21.75-10.14L160 128l57-25.1c11.69-5.4 7.85-22.9-5-22.9" opacity=".2"/><path d="M160 40a32 32 0 1 0-32 32a32 32 0 0 0 32-32m-32 16a16 16 0 1 1 16-16a16 16 0 0 1-16 16m103.5 31.71A19.62 19.62 0 0 0 212 72H44a20 20 0 0 0-8.38 38.16l.13.06l50.75 22.35l-21 79.72a20 20 0 0 0 36.5 16.53l26-44.88l26 44.88a20 20 0 0 0 36.4-16.53l-21-79.72l50.75-22.35l.13-.06a19.63 19.63 0 0 0 11.22-22.45m-17.8 7.9l-56.93 25.07a8 8 0 0 0-4.51 9.36L175.13 217a7 7 0 0 0 .49 1.35a4 4 0 1 1-7.25 3.38c-.11-.22-.22-.43-.34-.63L134.92 164a8 8 0 0 0-13.84 0L88 221.06c-.12.2-.23.41-.34.63a4 4 0 1 1-7.25-3.38a7 7 0 0 0 .49-1.35L103.74 130a8 8 0 0 0-4.51-9.36L42.3 95.61A4 4 0 0 1 44 88h168a4 4 0 0 1 1.73 7.61Z"/></g></svg>
+                <a href="/users">用户</a>
             </div>
-            <div class='x-header-item hover:text-hover {{if eq .selected "statistics"}}selected{{end}}'>
+            <div class='x-header-item flex gap-1 items-center hover:text-hover {{if eq .selected "statistics"}}selected{{end}}'>
+                <svg class="w-4 h-4 hidden md:block" xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 256 256"><g fill="#888888"><path d="M224 64v144H32V48h176a16 16 0 0 1 16 16" opacity=".2"/><path d="M232 208a8 8 0 0 1-8 8H32a8 8 0 0 1-8-8V48a8 8 0 0 1 16 0v12.69l56 56l26.34-26.35a8 8 0 0 1 11.32 0L192 148.69V128a8 8 0 0 1 16 0v40a7 7 0 0 1 0 .8c0 .11 0 .21-.05.32s0 .3-.07.46a3 3 0 0 1-.09.37c0 .13-.06.26-.1.39s-.08.23-.12.35l-.14.39l-.15.31c-.06.13-.12.27-.19.4s-.11.18-.16.28l-.24.39l-.21.28l-.26.35c-.11.14-.24.27-.36.4l-.16.18l-.17.15a5 5 0 0 1-.42.37a4 4 0 0 1-.32.25l-.3.22l-.38.23a3 3 0 0 1-.3.17l-.37.19l-.34.15l-.36.13a3 3 0 0 1-.38.13l-.36.1c-.14 0-.26.07-.4.09l-.42.07l-.35.05a7 7 0 0 1-.79 0H160a8 8 0 0 1 0-16h20.69L128 107.31l-26.34 26.35a8 8 0 0 1-11.32 0L40 83.31V200h184a8 8 0 0 1 8 8"/></g></svg>
                 <a href="/statistics">统计</a>
             </div>
-            <div class='x-header-item hover:text-hover {{if eq .selected "settings"}}selected{{end}}'>
+            <div class='x-header-item flex gap-1 items-center hover:text-hover {{if eq .selected "settings"}}selected{{end}}'>
+                <svg class="w-4 h-4 hidden md:block" xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 256 256"><g fill="#888888"><path d="m230.1 108.76l-31.85-18.14c-.64-1.16-1.31-2.29-2-3.41l-.12-36A104.6 104.6 0 0 0 162 32l-32 17.89h-4L94 32a104.6 104.6 0 0 0-34.11 19.25l-.16 36c-.7 1.12-1.37 2.26-2 3.41l-31.84 18.1a99.2 99.2 0 0 0 0 38.46l31.85 18.14c.64 1.16 1.31 2.29 2 3.41l.12 36A104.6 104.6 0 0 0 94 224l32-17.87h4L162 224a104.6 104.6 0 0 0 34.08-19.25l.16-36c.7-1.12 1.37-2.26 2-3.41l31.84-18.1a99.2 99.2 0 0 0 .02-38.48M128 168a40 40 0 1 1 40-40a40 40 0 0 1-40 40" opacity=".2"/><path d="M128 80a48 48 0 1 0 48 48a48.05 48.05 0 0 0-48-48m0 80a32 32 0 1 1 32-32a32 32 0 0 1-32 32m109.94-52.79a8 8 0 0 0-3.89-5.4l-29.83-17l-.12-33.62a8 8 0 0 0-2.83-6.08a111.9 111.9 0 0 0-36.72-20.67a8 8 0 0 0-6.46.59L128 41.85L97.88 25a8 8 0 0 0-6.47-.6a111.9 111.9 0 0 0-36.68 20.75a8 8 0 0 0-2.83 6.07l-.15 33.65l-29.83 17a8 8 0 0 0-3.89 5.4a106.5 106.5 0 0 0 0 41.56a8 8 0 0 0 3.89 5.4l29.83 17l.12 33.63a8 8 0 0 0 2.83 6.08a111.9 111.9 0 0 0 36.72 20.67a8 8 0 0 0 6.46-.59L128 214.15L158.12 231a7.9 7.9 0 0 0 3.9 1a8.1 8.1 0 0 0 2.57-.42a112.1 112.1 0 0 0 36.68-20.73a8 8 0 0 0 2.83-6.07l.15-33.65l29.83-17a8 8 0 0 0 3.89-5.4a106.5 106.5 0 0 0-.03-41.52m-15 34.91l-28.57 16.25a8 8 0 0 0-3 3c-.58 1-1.19 2.06-1.81 3.06a7.94 7.94 0 0 0-1.22 4.21l-.15 32.25a95.9 95.9 0 0 1-25.37 14.3L134 199.13a8 8 0 0 0-3.91-1h-3.83a8.1 8.1 0 0 0-4.1 1l-28.84 16.1A96 96 0 0 1 67.88 201l-.11-32.2a8 8 0 0 0-1.22-4.22c-.62-1-1.23-2-1.8-3.06a8.1 8.1 0 0 0-3-3.06l-28.6-16.29a90.5 90.5 0 0 1 0-28.26l28.52-16.28a8 8 0 0 0 3-3c.58-1 1.19-2.06 1.81-3.06a7.94 7.94 0 0 0 1.22-4.21l.15-32.25a95.9 95.9 0 0 1 25.37-14.3L122 56.87a8 8 0 0 0 4.1 1h3.64a8 8 0 0 0 4.1-1l28.84-16.1A96 96 0 0 1 188.12 55l.11 32.2a8 8 0 0 0 1.22 4.22c.62 1 1.23 2 1.8 3.06a8.1 8.1 0 0 0 3 3.06l28.6 16.29a90.5 90.5 0 0 1 .05 28.29Z"/></g></svg>
                 <a href="/settings">设置</a>
             </div>
 
@@ -46,11 +65,14 @@
                     <img src="{{$.avatarCdn}}/{{.userinfo.EmailHash}}" class="rounded w-4 h-4"/>
                     <a class="hover:text-hover"
                             href="/u/profile/{{.userinfo.Username}}">{{.userinfo.Username}}</a></div>
-                <div class='x-header-item hover:text-hover {{if eq .selected "message"}}selected{{end}} {{if gt .unReadMessageCount 0}}text-red{{end}}'>
-                    <a href="/u/message">消息({{.unReadMessageCount}})</a></div>
+                <div class='x-header-item flex gap-1 items-center hover:text-hover {{if eq .selected "message"}}selected{{end}} {{if gt .unReadMessageCount 0}}text-red{{end}}'>
+                    <a href="/u/message">消息({{.unReadMessageCount}})</a>
+                </div>
                 <div class="x-header-item hover:text-hover"><a href="/u/logout">登出</a></div>
             {{else}}
-                <div class='x-header-item hover:text-hover {{if eq .selected "login"}}selected{{end}}'><a href="/u/login">登录</a>
+                <div class='x-header-item flex items-center gap-1 hover:text-hover {{if eq .selected "login"}}selected{{end}}'>
+                    <svg class="w-4 h-4 hidden md:block" xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 256 256"><g fill="#888888"><path d="M200 40v176H40a16 16 0 0 1-16-16V56a16 16 0 0 1 16-16Z" opacity=".2"/><path d="m141.66 133.66l-40 40a8 8 0 0 1-11.32-11.32L116.69 136H24a8 8 0 0 1 0-16h92.69L90.34 93.66a8 8 0 0 1 11.32-11.32l40 40a8 8 0 0 1 0 11.32M200 32h-64a8 8 0 0 0 0 16h56v160h-56a8 8 0 0 0 0 16h64a8 8 0 0 0 8-8V40a8 8 0 0 0-8-8"/></g></svg>
+                    <a href="/u/login">登录</a>
                 </div>
             {{ end }}
         </div>

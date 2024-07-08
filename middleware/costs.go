@@ -8,7 +8,6 @@ import (
 func CostHandler() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		c.Set("executionTime", time.Now().UnixMilli())
-
 		c.Next()
 	}
 

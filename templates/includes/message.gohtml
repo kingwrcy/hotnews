@@ -5,12 +5,12 @@
 
     {{ if gt .unReadMessageCount 0}}
         <div class="flex my-4 justify-end">
-            <a class="btn" href="/u/message/setAllRead">全部已读</a>
+            <a class="btn dark:text-white" href="/u/message/setAllRead">全部已读</a>
         </div>
     {{end}}
 
     {{if gt (len .messages) 0}}
-        <table class="w-full mytable" style="border-collapse: collapse; ">
+        <table class="w-full mytable dark:text-white" style="border-collapse: collapse; ">
             <thead>
             <tr>
                 <th>发送时间</th>

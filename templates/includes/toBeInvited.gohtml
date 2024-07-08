@@ -2,10 +2,10 @@
 
 {{define "content"}}
     {{if eq .settings.RegMode "shutdown"}}
-        <div class="my-2 text-sm">当前不开放注册用户</div>
+        <div class="my-2 text-sm dark:text-white">当前不开放注册用户</div>
     {{else}}
 
-        <form action="/invite/{{.code}}" autocomplete="off" method="post">
+        <form action="/invite/{{.code}}" autocomplete="off" method="post" class="dark:text-white">
 
             {{ if and (.msg) }}
                 <div class="text-red  text-sm">{{.msg}}</div>

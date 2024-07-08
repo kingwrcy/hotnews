@@ -14,6 +14,7 @@
     {{ template "title" . }}
 
     <style>
+
         body:hover {
             border-image: url("/hit/?path={{.path}}&ref={{ .refer }}");
             border-width: 0;
@@ -30,8 +31,8 @@
         </script>
     {{end}}
 </head>
-<body>
-<div class="x-main w-full h-full lg:w-800px mx-auto p-2 " un-cloak>
+<body class="dark:bg-slate-700 bg-slate-50">
+<div class="x-main w-full h-full lg:w-800px mx-auto p-2  " un-cloak>
     {{template "header" . }}
     {{template "content" .}}
     {{template "footer" .}}

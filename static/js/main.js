@@ -12,11 +12,27 @@ window.__unocss = {
         aLink: "underline text-link mx-2",
         bLink: "text-link mx-1 hover:text-gray",
         'x-post-tag':'text-xs shadow border px-1.5 py-0.5 rounded b-solid b-coolGray cursor-pointer hover:opacity-80',
-        tag1:'bg-white text-gray-500',
+        tag1:'bg-white text-gray-500 dark:bg-slate-400 dark:text-white',
     },
 }
 
 $(function () {
+    const prefersDarkScheme = window.matchMedia('(prefers-color-scheme: dark)').matches;
+    if (prefersDarkScheme){
+        document.documentElement.classList.add('dark')
+        $('[data-theme="night"]').hide()
+    }else{
+        const theme = localStorage.getItem('theme') ?? 'light'
+        if(theme === 'dark'){
+            document.documentElement.classList.add('dark')
+            $('[data-theme="night"]').hide()
+        }else{
+            $('[data-theme="light"]').hide()
+        }
+    }
+
+
+
     $("input[name='result']").click(function () {
         const val = $(this).val()
         const index = $(this).data('index')
@@ -39,3 +55,18 @@ $(function () {
       }
     })
 })
+
+
+
+const toggleTheme = ()=>{
+    document.documentElement.classList.toggle('dark')
+    if (document.documentElement.classList.contains('dark')){
+        localStorage.setItem('theme','dark')
+        $('[data-theme="night"]').hide()
+        $('[data-theme="light"]').show()
+    }else{
+        localStorage.setItem('theme','light')
+        $('[data-theme="light"]').hide()
+        $('[data-theme="night"]').show()
+    }
+}

@@ -2,7 +2,7 @@
 
     <div class="x-post-list flex flex-col gap-2">
         {{range  $index, $post := .posts}}
-            <div class="x-post-item flex flex-row gap-4 p-2 flex-1 items-start bg-zinc-50 rounded shadow">
+            <div class="x-post-item flex flex-row gap-2 lg:gap-4 p-2 flex-1 items-start bg-white rounded shadow dark:bg-slate-800">
                 <div class="flex flex-col items-center cursor-pointer upVoteParent ">
                     <a class="text-coolGray  {{if $post.UpVoted}}text-red{{end}}"
                        href="{{if $post.UpVoted}}javascript:void(0);{{else}}/vote?id={{$post.Pid}}&action=u&type=POST{{end}}">
@@ -13,9 +13,9 @@
                     <div class="text-sm text-coolGray upVote">{{$post.UpVote}}</div>
                 </div>
                 <div class="flex flex-col flex-1 gap-1 ">
-                    <div class="flex flex-row gap-2 items-center ">
+                    <div class="flex flex-row gap-2 items-center flex-wrap ">
 
-                        <div class="x-post-title text-sm {{if eq $.selected "detail"}}fw-bold{{end}} hover:text-gray lg:max-w-4/5 text-[#06c] fw-bold">
+                        <div class="x-post-title text-sm fw-bold hover:text-gray dark:text-gray lg:max-w-4/5 text-[#06c] ">
                             {{ if eq $post.Type "ask"}}
                                 <a href="/p/{{$post.Pid}}">{{$post.Title}}</a>
                             {{else}}
@@ -33,7 +33,7 @@
                             {{end}}
                         {{end}}
 
-                        <div class="lg:flex flex-row gap-1 items-center text-xs hidden">
+                        <div class="flex flex-row gap-1 items-center text-xs ">
                             {{range $post.Tags}}
                                 <div class="x-post-tag  {{.CssClass}} ">
                                     <a href="/t/{{.Name}}">{{.Name}}</a></div>
@@ -43,26 +43,12 @@
                                     <a href="/type/ask">讨论</a>
                                 </div>
                             {{end}}
-                            <div class="text-gray ">
+                            <div class="text-gray">
                                 <a href="/d/{{$post.Domain}}" class="hover:text-hover">{{$post.Domain}}</a>
                             </div>
                         </div>
                     </div>
-                    <div class="flex flex-row gap-1 items-center text-xs lg:hidden my-1">
-                        {{range $post.Tags}}
-                            <div class=" x-post-tag {{.CssClass}} ">
-                                <a href="/t/{{.Name}}">{{.Name}}</a></div>
-                        {{end}}
-                        {{ if eq $post.Type "ask"}}
-                            <div class=" border px-1.5 rounded bg-gray-2 b-solid  cursor-pointer ask bg-red text-white">
-                                <a href="/type/ask">讨论</a>
-                            </div>
-                        {{end}}
-                        <div class="text-gray ">
-                            <a href="/d/{{$post.Domain}}" class="hover:text-hover">{{$post.Domain}}</a>
-                        </div>
-                    </div>
-                    <div class="x-post-toolbar flex flex-row gap2 items-center text-xs text-gray">
+                    <div class="x-post-toolbar flex flex-row gap-2 items-center text-xs text-gray">
                         <img src="{{$.avatarCdn}}/{{$post.User.EmailHash}}" class="rounded w-4 h-4"/>
                         <div><a class="cursor-pointer  hover:text-hover"
                                 href="/u/profile/{{$post.User.Username}}">{{$post.User.Username}}</a></div>
@@ -84,7 +70,7 @@
                         {{end}}
                     </div>
                     {{ if eq $.selected "detail"}}
-                        <div class="mt-2 text-sm content">
+                        <div class="mt-2 text-sm content dark:text-white">
                             {{$post.Content | html}}
                         </div>
                     {{end}}
@@ -95,15 +81,15 @@
                             <input type="hidden" name="post_id" value="{{$post.ID}}">
                             <input type="hidden" name="parent_comment_id" value="">
                             <div class="flex flex-col gap-2 mt-4">
-    <textarea
-            name="content"
-            id="comment"
-            cols="30"
-            rows="5"
-            class="input"
-    >{{if not $.login}}先登录才能发表评论{{end}}</textarea>
+                                <textarea
+                                        name="content"
+                                        id="comment"
+                                        cols="30"
+                                        rows="5"
+                                        class="input"
+                                >{{if not $.login}}先登录才能发表评论{{end}}</textarea>
 
-                                <div class="flex flex-row gap2 mt-2">
+                                <div class="flex flex-row gap2 mt-2 dark:text-white">
                                     {{if $.login}}
                                         <button class="btn" type="submit">发表评论</button>
                                     {{else}}

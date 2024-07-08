@@ -122,9 +122,12 @@ div.sceditor-group {
     border-left: 1px dashed #eee;
 }
 
+.dark .mytable tr:nth-of-type(odd) {
+    background: rgb(71 85 105);
+}
 
 .mytable tr:nth-of-type(odd) {
-    background: #eee;
+    background: #ccc;
 }
 
 .mytable th {

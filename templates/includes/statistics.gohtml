@@ -118,7 +118,7 @@
 {{end}}
 
 {{define "content"}}
-    <form method="get" action="/statistics">
+    <form method="get" action="/statistics" class="dark:text-white">
         <div class="flex flex-col gap-2">
             <div class="flex gap-2 items-center">
                 <label for="start" class="fw-bold">开始日期</label>
@@ -135,8 +135,10 @@
         </div>
     </form>
 
-    <div id="main" class="my-4" style="width:800px;height:400px;"></div>
-    <div id="country" class="my-4" style="width:800px;height:400px;"></div>
-    <div id="refer" class="my-4" style="width:800px;height:400px;"></div>
+    <div class="dark:text-white">
+        <div id="main" class="my-4" style="width:800px;height:400px;"></div>
+        <div id="country" class="my-4" style="width:800px;height:400px;"></div>
+        <div id="refer" class="my-4" style="width:800px;height:400px;"></div>
+    </div>
 {{end}}
 {{ define "afterBody"}}{{end}}

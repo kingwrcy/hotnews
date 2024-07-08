@@ -8,7 +8,7 @@
     {{end}}
     {{range .tags}}
 
-        <p class="font-bold text-lg my-4 underline cursor-pointer text-black"
+        <p class="font-bold text-lg my-4 underline cursor-pointer text-black dark:text-white"
            style="text-underline-offset: 0.4rem;text-decoration-thickness: 2px;">
             <a href='/t/p/{{.Name}}'>{{.Name}}</a>
             {{if and (not (eq $.userinfo nil)) (eq $.userinfo.Role "admin")}}
